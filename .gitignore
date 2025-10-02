@@ -1,0 +1,44 @@
+# Ignore datasets
+Testing/datasets/
+
+# macOS system files
+.DS_Store
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+
+# Environment files
+.env
+.venv/
+env/
+venv/
+
+# Log files
+*.log
+
+# Archive files
+*.zip
+*.tar.gz
+*.tar
+*.rar
+
+# Ignore model checkpoints and outputs
+*.ckpt
+*.pth
+*.h5
+*.pt
+
+# Ignore temporary files
+*~
+*.swp
+*.swo
+*.bak
