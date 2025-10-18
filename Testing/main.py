@@ -38,7 +38,7 @@ def get_result(filename):
 if __name__ == '__main__':
     # Resolve dataset directory relative to this file (portable across machines)
 
-    Multi = True
+    Multi = False
     # Initialize list to store all results
     all_results = []
     all_logits = []
@@ -62,7 +62,7 @@ if __name__ == '__main__':
                 "CATSv2",
                 "TAO"
             ]
-        base_dir = 'Testing/Datasets/TSB-AD-M'
+        base_dir = 'Testing/datasets/TSB-AD-M'
         files = os.listdir(base_dir)
     else:
         filter_list = [
@@ -82,8 +82,8 @@ if __name__ == '__main__':
                 # "IOPS",
                 # "MGAB",
                 # "NAB",
-                # "NEK",
-                # "Power",
+                "NEK",
+                "Power",
                 # "SED",
                 # "Stock",
                 # "TODS",
@@ -91,7 +91,7 @@ if __name__ == '__main__':
                 # "YAHOO",
                 # "UCR"
                 ]
-        base_dir = 'Testing/Datasets/TSB-AD-U'
+        base_dir = 'Testing/datasets/TSB-AD-U'
         files = os.listdir(base_dir)
 
 
