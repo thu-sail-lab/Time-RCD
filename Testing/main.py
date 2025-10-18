@@ -79,17 +79,17 @@ if __name__ == '__main__':
                     "SVDB",
                     "OPP",
 
-                # "IOPS",
-                # "MGAB",
-                # "NAB",
+                "IOPS",
+                "MGAB",
+                "NAB",
                 "NEK",
-                "Power",
+                # "Power",
                 # "SED",
-                # "Stock",
-                # "TODS",
-                # "WSD",
-                # "YAHOO",
-                # "UCR"
+                "Stock",
+                "TODS",
+                "WSD",
+                "YAHOO",
+                "UCR"
                 ]
         base_dir = 'Testing/datasets/TSB-AD-U'
         files = os.listdir(base_dir)
