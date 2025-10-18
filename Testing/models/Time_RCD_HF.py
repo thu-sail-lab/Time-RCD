@@ -70,52 +70,60 @@ class Time_RCD:
             if hf_path not in sys.path:
                 sys.path.append(hf_path)
             
-            from huggingface_time_rcd import Time_RCD as HF_Time_RCD, TimeRCDConfig
+            # from huggingface_time_rcd import Time_RCD as HF_Time_RCD, TimeRCDConfig
             
-            # Create config matching your checkpoint's trained parameters
-            # These values come from the 'config' key in your checkpoint
-            config = TimeRCDConfig(
-                num_features=self.num_input_channels,
-                win_size=self.win_size,
-                batch_size=self.batch_size,
-                d_model=512,         # From checkpoint config
-                d_proj=256,          # From checkpoint config
-                patch_size=4,        # ⚠️ IMPORTANT: Your checkpoint uses 4, not 16!
-                num_layers=8,        # From checkpoint config
-                num_heads=8,         # From checkpoint config
-                d_ff_dropout=0.1,    # From checkpoint config
-                use_rope=True,       # From checkpoint config
-                activation="gelu",   # From checkpoint config
-                dropout=0.1,
-                max_seq_len=512      # From checkpoint config
-            )
+            # # Create config matching your checkpoint's trained parameters
+            # # These values come from the 'config' key in your checkpoint
+            # config = TimeRCDConfig(
+            #     num_features=self.num_input_channels,
+            #     win_size=self.win_size,
+            #     batch_size=self.batch_size,
+            #     d_model=512,         # From checkpoint config
+            #     d_proj=256,          # From checkpoint config
+            #     patch_size=4,        # ⚠️ IMPORTANT: Your checkpoint uses 4, not 16!
+            #     num_layers=8,        # From checkpoint config
+            #     num_heads=8,         # From checkpoint config
+            #     d_ff_dropout=0.1,    # From checkpoint config
+            #     use_rope=True,       # From checkpoint config
+            #     activation="gelu",   # From checkpoint config
+            #     dropout=0.1,
+            #     max_seq_len=512      # From checkpoint config
+            # )
             
             # Check if model_path is a local checkpoint file
-            if self.model_path.endswith('.pth') and os.path.exists(self.model_path):
-                print(f"Loading from local checkpoint: {self.model_path}")
+            # if self.model_path.endswith('.pth') and os.path.exists(self.model_path):
+            #     print(f"Loading from local checkpoint: {self.model_path}")
                 
-                # Try auto-detection first (config will be read from checkpoint)
-                try:
-                    print("🔍 Attempting auto-detection of config from checkpoint...")
-                    self.model = HF_Time_RCD.from_original_checkpoint(self.model_path, config=None)
-                except Exception as e:
-                    print(f"⚠️  Auto-detection failed: {e}")
-                    print("📝 Using manually specified config...")
-                    self.model = HF_Time_RCD.from_original_checkpoint(self.model_path, config)
-            else:
-                print(f"Loading from HuggingFace Hub: {self.model_path}")
-                self.model = HF_Time_RCD.from_pretrained(
-                    self.model_path,
-                    config=config,
-                    trust_remote_code=True
-                )
+            #     # Try auto-detection first (config will be read from checkpoint)
+            #     try:
+            #         print("🔍 Attempting auto-detection of config from checkpoint...")
+            #         self.model = HF_Time_RCD.from_original_checkpoint(self.model_path, config=None)
+            #     except Exception as e:
+            #         print(f"⚠️  Auto-detection failed: {e}")
+            #         print("📝 Using manually specified config...")
+            #         self.model = HF_Time_RCD.from_original_checkpoint(self.model_path, config)
+            # else:
+            from transformers import AutoModel, AutoProcessor
             
+            print(f"Loading from HuggingFace Hub: {self.model_path}")
+            self.model = AutoModel.from_pretrained(
+                        "thu-sail-lab/Time_RCD",
+                        trust_remote_code=True
+            )
+            self.processor = AutoProcessor.from_pretrained(
+                        "thu-sail-lab/Time_RCD",
+                        win_size=self.win_size,
+                        stride=self.win_size,
+                        normalize=True
+            )
             # Move to device
             self.model = self.model.to(self.device)
+            self.processor = self.processor.to(self.device)
             self.model.eval()
+            self.processor.eval()
             
             print(f"✅ Time_RCD model loaded successfully on {self.device}")
-            print(f"Model config: num_features={config.num_features}, win_size={config.win_size}")
+            # print(f"Model config: num_features={config.num_features}, win_size={config.win_size}")
             
         except Exception as e:
             print(f"❌ Error loading Time_RCD model: {str(e)}")
