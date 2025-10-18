@@ -286,6 +286,6 @@ Optimal_Uni_algo_HP_dict = {
     'AnomalyCLIP_Reconstruction': {'win_size':5000, 'batch_size': 128},
     'AnomalyCLIP_Reconstruction_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
     'AnomalyCLIP_Reconstruction_Random_Mask_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
-    'Time_RCD_HF': {'win_size': 5000, 'batch_size': 64, 'model_path': '', 'device': 'cuda:0'},
+    'Time_RCD_HF': {'win_size': 5000, 'batch_size': 64, 'model_path': 'checkpoints/full_mask_anomaly_head_pretrain_checkpoint_best.pth', 'device': 'cuda:0'},
     'TSPulse': {'win_size':96, 'batch_size': 64, 'aggregation_length': 64, 'aggr_function': 'max', 'smoothing_length': 8}
 }
