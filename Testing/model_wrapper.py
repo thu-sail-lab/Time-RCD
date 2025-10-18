@@ -4,7 +4,7 @@ from .utils.slidingWindows import find_length_rank
 
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
                         'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama',
-                       'TimesFM', 'Chronos', 'MOMENT_ZS', 'DADA', 'Time_MOE', 'AnomalyCLIP', 'AnomalyCLIP_Reconstruction', 'AnomalyCLIP_Reconstruction_Anomaly_Head', 'AnomalyCLIP_Reconstruction_Random_Mask_Anomaly_Head', 'TSPulse']
+                       'TimesFM', 'Chronos', 'MOMENT_ZS', 'DADA', 'Time_MOE', 'Time_RCD_HF', 'TSPulse']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
                         'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', ]
 
@@ -607,3 +607,56 @@ def run_TSPulse(data, win_size=256, batch_size=64, prediction_mode=None, aggrega
         print("Falling back to random scores")
         # Return random scores as fallback
         return np.random.random(len(data)) * 0.1
+
+
+def run_Time_RCD_HF(data, **kwargs):
+    """
+    Wrapper function for Time-RCD model using HuggingFace integration
+
+    This function provides a compatible interface for using the HuggingFace-compatible
+    Time_RCD model within the existing testing framework.
+    
+    Note: The Time_RCD model handles normalization internally, so no external
+    preprocessing is needed!
+
+    Args:
+        data: Time series data of shape (n_samples, n_features)
+        **kwargs: Additional parameters including:
+            - model_path: Path to checkpoint or HuggingFace model directory
+            - win_size: Window size for inference (default: 5000)
+            - batch_size: Batch size for processing (default: 64)
+            - device: Device to use (default: 'cpu')
+
+    Returns:
+        tuple: (anomaly_scores, None) - returns scores and None for compatibility
+    """
+    from .models.Time_RCD_HF import Time_RCD
+
+    # Extract parameters with defaults
+    model_path = kwargs.get('model_path', None)
+    win_size = kwargs.get('win_size', 5000)
+    batch_size = kwargs.get('batch_size', 64)
+    device = kwargs.get('device', 'cpu')
+
+    print(f"Using Time-RCD model")
+    if model_path:
+        print(f"Model path: {model_path}")
+    print(f"Data shape: {data.shape}")
+    print(f"Window size: {win_size}, Batch size: {batch_size}")
+    print(f"Note: Model handles normalization internally ✅")
+
+    # Create Time_RCD model
+    model = Time_RCD(
+        num_input_channels=data.shape[1],
+        model_path=model_path,
+        win_size=win_size,
+        batch_size=batch_size,
+        device=device
+    )
+
+    # Run zero-shot inference (no preprocessing needed!)
+    score = model.decision_function(data)
+
+    return score.ravel(), None
+
+

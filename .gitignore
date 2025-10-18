@@ -1,6 +1,6 @@
 # Ignore datasets
 Testing/datasets/
-
+Testing/checkpoints/
 # macOS system files
 .DS_Store
 
@@ -12,7 +12,8 @@ __pycache__/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
-
+huggingface_time_rcd/
+huggingface_anomalyclip
 # VSCode settings
 .vscode/
 
@@ -42,3 +43,4 @@ venv/
 *.swp
 *.swo
 *.bak
+*.md

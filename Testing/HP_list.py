@@ -87,6 +87,12 @@ Multi_algo_HP_dict = {
     'AnomalyCLIP': {
         'win_size': 7000
     },
+    'AnomalyCLIP_HF': {
+        'win_size': [3000, 5000, 7000],
+        'batch_size': [32, 64, 128],
+        'model_path': ['anomalyclip-hf'],
+        'device': ['cuda:0', 'cuda:1']
+    },
     'TSPulse': {
         'win_size': [64, 128, 256],
         'batch_size': [32, 64, 128],
@@ -123,6 +129,7 @@ Optimal_Multi_algo_HP_dict = {
     'FITS': {'win_size': 100, 'lr': 0.001},
     'OFA': {'win_size': 50},
     'AnomalyCLIP': {'win_size':5000, 'batch_size': 1},
+    'AnomalyCLIP_HF': {'win_size': 5000, 'batch_size': 64, 'model_path': 'anomalyclip-hf', 'device': 'cuda:0'},
     'DADA': {'win_size': 100, 'batch_size': 64},
     'TSPulse': {'win_size': 96 , 'batch_size': 64, 'aggregation_length': 64, 'aggr_function': 'max', 'smoothing_length': 8}
 }
@@ -279,5 +286,6 @@ Optimal_Uni_algo_HP_dict = {
     'AnomalyCLIP_Reconstruction': {'win_size':5000, 'batch_size': 128},
     'AnomalyCLIP_Reconstruction_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
     'AnomalyCLIP_Reconstruction_Random_Mask_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
+    'AnomalyCLIP_HF': {'win_size': 5000, 'batch_size': 64, 'model_path': 'anomalyclip-hf', 'device': 'cuda:0'},
     'TSPulse': {'win_size':96, 'batch_size': 64, 'aggregation_length': 64, 'aggr_function': 'max', 'smoothing_length': 8}
 }

@@ -62,7 +62,7 @@ if __name__ == '__main__':
                 "CATSv2",
                 "TAO"
             ]
-        base_dir = '/home/lihaoyang/Huawei/TSB-AD/Datasets/'
+        base_dir = 'Testing/Datasets/TSB-AD-M'
         files = os.listdir(base_dir)
     else:
         filter_list = [
@@ -91,7 +91,7 @@ if __name__ == '__main__':
                 # "YAHOO",
                 # "UCR"
                 ]
-        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Datasets', 'TSB-AD-U'))
+        base_dir = 'Testing/Datasets/TSB-AD-U'
         files = os.listdir(base_dir)
 
 
@@ -110,19 +110,15 @@ if __name__ == '__main__':
             torch.cuda.synchronize()
             # print(f"GPU memory cleared before processing {file}")
         parser = argparse.ArgumentParser(description='Running TSB-AD')
-        parser.add_argument('--AD_Name', type=str, default='AnomalyCLIP')
+        parser.add_argument('--AD_Name', type=str, default='Time_RCD_HF')
         parser.add_argument('--filename', type=str, default=file)
         parser.add_argument('--data_direc', type=str, default=base_dir)
         parser.add_argument('--save', type=bool, default=True)
-        # completed_files = os.listdir(f"/home/lihaoyang/Huawei/TSB-AD/{'Multi' if Multi else 'Uni'}_test_"+parser.parse_args().AD_Name)
-        # print(f"Completed files in directory: {completed_files}")
         args = parser.parse_args()
         if Multi:
             Optimal_Det_HP = Optimal_Multi_algo_HP_dict[args.AD_Name]
         else:
             Optimal_Det_HP = Optimal_Uni_algo_HP_dict[args.AD_Name]
-        # try:
-            # Read data using a proper path join
         df_path = os.path.join(args.data_direc, args.filename)
         df = pd.read_csv(df_path).dropna()
         data = df.iloc[:, 0:-1].values.astype(float)
@@ -140,30 +136,19 @@ if __name__ == '__main__':
         print(f"Train data shape: {data_train.shape}, Test data shape: {test_data.shape}, Label test shape: {label_test.shape}")
 
         print(f"Optimal Hyperparameters for {args.AD_Name}: {Optimal_Det_HP}")
-        logits = None  # ensure defined irrespective of branch
-        # check_file_name = file.replace('.csv', '_results.pkl')
-        # if check_file_name in completed_files:
-        #     completed_file_path = os.path.join(f"/home/lihaoyang/Huawei/TSB-AD/{'Multi' if Multi else 'Uni'}_test_"+parser.parse_args().AD_Name+"/", check_file_name)
-        #     print(f"Skipping {args.filename}, already completed.")
-        #     output  = get_result(completed_file_path)
-        # else:
+        logits = None
+
         print(f"Running {args.AD_Name} on {args.filename}...")
         if args.AD_Name in Semisupervise_AD_Pool:
             output = run_Semisupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
         elif args.AD_Name in Unsupervise_AD_Pool:
-            if args.AD_Name == 'AnomalyCLIP':
-                # For AnomalyCLIP, we need to pass the test data directly
-                output, logits = run_Unsupervise_AD(args.AD_Name, test_data, **Optimal_Det_HP)
-            else:
-                output = run_Unsupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
+            output = run_Unsupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
         else:
             raise Exception(f"{args.AD_Name} is not defined")
 
         if isinstance(output, np.ndarray):
-            # output = MinMaxScaler(feature_range=(0,1)).fit_transform(output.reshape(-1,1)).ravel()
 
-            # Fix shape mismatch issue - ensure output and labels have the same length
-            min_length = min(len(output), len(label_test))  # Use label_test instead of label
+            min_length = min(len(output), len(label_test))
             output_aligned = output[:min_length]
             label_aligned = label_test[:min_length]
             logits_aligned = None
@@ -187,7 +172,7 @@ if __name__ == '__main__':
                 'train_index': train_index,
                 'data_shape': f"{data.shape[0]}x{data.shape[1]}",
                 'output_length': len(output),
-                'label_length': len(label_test),  # Use label_test length
+                'label_length': len(label_test),
                 'aligned_length': min_length,
                 **evaluation_result  # Unpack all evaluation metrics
             }
@@ -202,13 +187,12 @@ if __name__ == '__main__':
                     'train_index': train_index,
                     'data_shape': f"{data.shape[0]}x{data.shape[1]}",
                     'output_length': len(logits),
-                    'label_length': len(label_test),  # Use label_test length
+                    'label_length': len(label_test),
                     'aligned_length': min_length,
                     **evaluation_result_logits  # Unpack all evaluation metrics for logits
                 }
                 all_logits.append(logit_dict)
             print(f"Logits results for {args.filename}: {logit_dict}" if logits is not None else "No logits available")
-            # Save value, label, and anomaly scores to pickle file
             if args.save:
                 output_filename = f'{args.filename.split(".")[0]}_results.pkl'
                 output_path = os.path.join(
@@ -224,7 +208,6 @@ if __name__ == '__main__':
                 print(f'Results saved to {output_path}')
         else:
             print(f'At {args.filename}: '+output)
-            # Save error information as well
             result_dict = {
                 'filename': args.filename,
                 'AD_Name': args.AD_Name,
@@ -235,18 +218,7 @@ if __name__ == '__main__':
             }
             all_results.append(result_dict)
 
-        # except Exception as e:
-        #     print(f"Error processing {args.filename}: {str(e)}")
-        #     # Save error information
-        #     result_dict = {
-        #         'filename': args.filename,
-        #         'AD_Name': args.AD_Name,
-        #         'sliding_window': None,
-        #         'train_index': None,
-        #         'data_shape': None,
-        #         'error_message': str(e)
-        #     }
-        #     all_results.append(result_dict)
+
 
     # Convert results to DataFrame and save to CSV
     if all_results:
