@@ -40,6 +40,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Running TSB-AD')
     parser.add_argument('--mode', type=str, default='uni', choices=['uni', 'multi'],
                     help='Encoder mode: uni for univariate, multi for multivariate')
+    parser.add_argument('--AD_Name', type=str, default='Time_RCD')
+    parser.add_argument('--filename', type=str, default='')
+    parser.add_argument('--data_direc', type=str, default='')
+    parser.add_argument('--save', type=bool, default=True)
     Multi = parser.parse_args().mode == 'multi'
     # Initialize list to store all results
     all_results = []
@@ -104,21 +108,17 @@ if __name__ == '__main__':
         if any(filter_item in file for filter_item in filter_list):
             print(f"Skipping file: {file} due to filter criteria.")
             continue
-        # if "615_YAHOO_id_65_WebService_tr_500_1st_348" not in file:
-        #     continue
+
         # Clear GPU memory before processing each file
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
-            # print(f"GPU memory cleared before processing {file}")
         
         parser.add_argument('--AD_Name', type=str, default='Time_RCD')
         parser.add_argument('--filename', type=str, default=file)
         parser.add_argument('--data_direc', type=str, default=base_dir)
         parser.add_argument('--save', type=bool, default=True)
 
-        # completed_files = os.listdir(f"/home/lihaoyang/Huawei/TSB-AD/{'Multi' if Multi else 'Uni'}_test_"+parser.parse_args().AD_Name)
-        # print(f"Completed files in directory: {completed_files}")
         args = parser.parse_args()
         if Multi:
             Optimal_Det_HP = Optimal_Multi_algo_HP_dict[args.AD_Name]
@@ -144,12 +144,7 @@ if __name__ == '__main__':
 
         print(f"Optimal Hyperparameters for {args.AD_Name}: {Optimal_Det_HP}")
         logits = None  # ensure defined irrespective of branch
-        # check_file_name = file.replace('.csv', '_results.pkl')
-        # if check_file_name in completed_files:
-        #     completed_file_path = os.path.join(f"/home/lihaoyang/Huawei/TSB-AD/{'Multi' if Multi else 'Uni'}_test_"+parser.parse_args().AD_Name+"/", check_file_name)
-        #     print(f"Skipping {args.filename}, already completed.")
-        #     output  = get_result(completed_file_path)
-        # else:
+
         print(f"Running {args.AD_Name} on {args.filename}...")
         if args.AD_Name in Semisupervise_AD_Pool:
             output = run_Semisupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
@@ -238,19 +233,6 @@ if __name__ == '__main__':
             }
             all_results.append(result_dict)
 
-        # except Exception as e:
-        #     print(f"Error processing {args.filename}: {str(e)}")
-        #     # Save error information
-        #     result_dict = {
-        #         'filename': args.filename,
-        #         'AD_Name': args.AD_Name,
-        #         'sliding_window': None,
-        #         'train_index': None,
-        #         'data_shape': None,
-        #         'error_message': str(e)
-        #     }
-        #     all_results.append(result_dict)
-
     # Convert results to DataFrame and save to CSV
     if all_results:
         results_df = pd.DataFrame(all_results)
@@ -267,206 +249,3 @@ if __name__ == '__main__':
             print(f"Logits results saved to {logits_output_filename}")
     else:
         print("No results to save.")
-
-# -*- coding: utf-8 -*-
-# Author: Qinghua Liu <liu.11085@osu.edu>
-
-# License: Apache-2.0 License
-# import pandas as pd
-# import torch
-# import random, argparse
-# import numpy as np
-# from sklearn.preprocessing import MinMaxScaler
-# from .evaluation.metrics import get_metrics
-# from .utils.slidingWindows import find_length_rank
-# from .model_wrapper import *
-# from .HP_list import Optimal_Uni_algo_HP_dict
-# import os
-# # Cuda devices
-# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-# # seeding
-# seed = 2024
-# torch.manual_seed(seed)
-# torch.cuda.manual_seed(seed)
-# torch.cuda.manual_seed_all(seed)
-# np.random.seed(seed)
-# random.seed(seed)
-# torch.backends.cudnn.benchmark = False
-# torch.backends.cudnn.deterministic = True
-# import os
-# print("CUDA Available: ", torch.cuda.is_available())
-# print("cuDNN Version: ", torch.backends.cudnn.version())
-#
-# if __name__ == '__main__':
-#     # Resolve dataset directory relative to this file (portable across machines)
-#     base_dir = '/home/lihaoyang/Huawei/TSB-AD/Datasets/'
-#     # files = os.listdir(base_dir)
-#
-#     # Initialize list to store all results
-#     all_results = []
-#     all_logits = []
-#
-#     if torch.cuda.is_available():
-#         torch.cuda.empty_cache()
-#         torch.cuda.synchronize()
-#     parser = argparse.ArgumentParser(description='Running TSB-AD')
-#     parser.add_argument('--filename', type=str, default='local_combined_samples.pkl')
-#     parser.add_argument('--data_direc', type=str, default=base_dir)
-#     parser.add_argument('--save', type=bool, default=True)
-#     parser.add_argument('--AD_Name', type=str, default='Time_RCD')
-#     args = parser.parse_args()
-#
-#     # Read data using a proper path join
-#     df_path = os.path.join(args.data_direc, args.filename)
-#     dataset = pd.read_pickle(df_path)
-#     for index, df in enumerate(dataset):
-#         try:
-#             # Ensure numpy arrays
-#             data = np.asarray(df['time_series'], dtype=float)
-#             print(f"Processing file: {index}, Data shape: {data.shape}")
-#             # label = np.zeros(len(data), dtype=int)
-#             label = df['labels']
-#             # label[df['anomaly_position']:df['anomaly_end']] = 1
-#             print(f"Label shape: {label.shape}")
-#
-#             slidingWindow = find_length_rank(data, rank=1)
-#             test_data = data
-#             label_test = label
-#
-#             print(f"Test data shape: {test_data.shape}, Label test shape: {label_test.shape}")
-#             Optimal_Det_HP = Optimal_Uni_algo_HP_dict[args.AD_Name]
-#             print(f"Optimal Hyperparameters for {args.AD_Name}: {Optimal_Det_HP}")
-#             logits = None  # ensure defined irrespective of branch
-#             # Default train split for semisupervised methods (fallback to full data)
-#             data_train = data
-#             if args.AD_Name in Semisupervise_AD_Pool:
-#                 output = run_Semisupervise_AD(args.AD_Name, data_train, data, **Optimal_Det_HP)
-#             elif args.AD_Name in Unsupervise_AD_Pool:
-#                 if 'Time_RCD' in args.AD_Name:
-#                     # For Time_RCD, we need to pass the test data directly
-#                     output, logits = run_Unsupervise_AD(args.AD_Name, test_data, **Optimal_Det_HP, data_index=index)
-#                 else:
-#                     output = run_Unsupervise_AD(args.AD_Name, test_data, **Optimal_Det_HP)
-#             # else:
-#             #     raise Exception(f"{args.AD_Name} is not defined")
-#
-#             if isinstance(output, np.ndarray):
-#                 # output = MinMaxScaler(feature_range=(0,1)).fit_transform(output.reshape(-1,1)).ravel()
-#
-#                 # Fix shape mismatch issue - ensure output and labels have the same length
-#                 min_length = min(len(output), len(label_test))  # Use label_test instead of label
-#                 output_aligned = output[:min_length]
-#                 label_aligned = label_test[:min_length]
-#                 logits_aligned = None
-#                 if logits is not None:
-#                     logits_aligned = logits[:min_length]
-#
-#                 print(f"Original shapes - Output: {output.shape}, Label: {label_test.shape}")
-#                 print(f"Aligned shapes - Output: {output_aligned.shape}, Label: {label_aligned.shape}")
-#
-#                 evaluation_result = get_metrics(output_aligned, label_aligned, slidingWindow=slidingWindow, pred=output_aligned > (np.mean(output_aligned)+3*np.std(output_aligned)))
-#                 evaluation_result_logits = None
-#                 if logits is not None:
-#                     evaluation_result_logits = get_metrics(logits_aligned, label_aligned, slidingWindow=slidingWindow, pred=logits_aligned > (np.mean(logits_aligned)+3*np.std(logits_aligned)))
-#                 print('Evaluation Result: ', evaluation_result)
-#
-#                 # Prepare result dictionary with filename and all metrics
-#                 # data may be 1D; format shape robustly
-#                 if data.ndim == 1:
-#                     data_shape_str = str(data.shape[0])
-#                 else:
-#                     data_shape_str = f"{data.shape[0]}x{data.shape[1]}"
-#                 result_dict = {
-#                     'id': index,
-#                     'anomaly_type': df['anomaly_type'],
-#                     'AD_Name': args.AD_Name,
-#                     'sliding_window': slidingWindow,
-#                     'data_shape': data_shape_str,
-#                     'output_length': len(output),
-#                     'label_length': len(label_test),
-#                     'aligned_length': min_length,
-#                     **evaluation_result
-#                 }
-#                 all_results.append(result_dict)
-#
-#                 print(f"Results for {args.filename}: {result_dict}")
-#                 if logits is not None:
-#                     logit_dict = {
-#                          'id': index,
-#                         'anomaly_type': df['anomaly_type'],
-#                         'AD_Name': args.AD_Name,
-#                         'sliding_window': slidingWindow,
-#                         'data_shape': data_shape_str,
-#                         'output_length': len(logits),
-#                         'label_length': len(label_test),
-#                         'aligned_length': min_length,
-#                         **(evaluation_result_logits or {})
-#                     }
-#                     all_logits.append(logit_dict)
-#                 print(f"Logits results for {args.filename}: {logit_dict}" if logits is not None else "No logits available")
-#                 # Save value, label, and anomaly scores to pickle file
-#                 if args.save:
-#                     output_filename = f'{index}_results.pkl'
-#                     output_path = os.path.join(
-#                         os.path.join(os.getcwd(), ("Synthetic/local_full_mask_anomaly_head_"+args.AD_Name + "_" + str(Optimal_Det_HP['win_size'])), output_filename))
-#                     if not os.path.exists(output_path):
-#                         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-#                     pd.DataFrame({
-#                         'value': test_data[:min_length].tolist(),
-#                         'label': label_aligned.tolist(),
-#                         'anomaly_score': output_aligned.tolist(),
-#                         'logits': logits_aligned.tolist() if logits is not None else None
-#                     }).to_pickle(output_path)
-#                     print(f'Results saved to {output_path}')
-#             else:
-#                 print(f'At {args.filename}: '+output)
-#                 # Save error information as well
-#                 result_dict = {
-#                      'id': index,
-#                     'AD_Name': args.AD_Name,
-#                     'sliding_window': None,
-#                     'train_index': None,
-#                     'data_shape': None,
-#                     'error_message': output
-#                 }
-#                 all_results.append(result_dict)
-#
-#         except Exception as e:
-#             print(f"Error processing {args.filename}: {str(e)}")
-#             # Save error information
-#             result_dict = {
-#                 'id': index,
-#                 'AD_Name': args.AD_Name,
-#                 'sliding_window': None,
-#                 'train_index': None,
-#                 'data_shape': None,
-#                 'error_message': str(e)
-#             }
-#             all_results.append(result_dict)
-#
-#             logit_dict= {
-#                 'id': index,
-#                 'AD_Name': args.AD_Name,
-#                 'sliding_window': None,
-#                 'train_index': None,
-#                 'data_shape': None,
-#                 'error_message': str(e)
-#             }
-#             all_logits.append(logit_dict)
-#
-#     # Convert results to DataFrame and save to CSV
-#     if all_results:
-#         results_df = pd.DataFrame(all_results)
-#         win_size = str(Optimal_Det_HP['win_size'])
-#         output_filename = f'Synthetic_local_full_mask_anomaly_head_TSB_results_{args.AD_Name}_{win_size}.csv'
-#         results_df.to_csv(output_filename, index=False)
-#         print(f"\nAll results saved to {output_filename}")
-#         print(f"Total file processed: {len(all_results)}")
-#         print(f"Results shape: {results_df.shape}")
-#         if all_logits:
-#             logits_df = pd.DataFrame(all_logits)
-#             logits_output_filename = f'Synthetic_local_full_mask_anomaly_head_TSB_logits_results_{args.AD_Name}_{win_size}.csv'
-#             logits_df.to_csv(logits_output_filename, index=False)
-#             print(f"Logits results saved to {logits_output_filename}")
-#     else:
-#         print("No results to save.")
