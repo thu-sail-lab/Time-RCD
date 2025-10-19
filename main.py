@@ -38,7 +38,7 @@ def get_result(filename):
 if __name__ == '__main__':
     # Resolve dataset directory relative to this file (portable across machines)
 
-    Multi = False 
+    Multi = True 
     # Initialize list to store all results
     all_results = []
     all_logits = []
@@ -49,11 +49,11 @@ if __name__ == '__main__':
                 "Exathlon",
                 "Genesis",
                 "OPP",
-                # "SMD",
+                "SMD",
                 # "SWaT",
                 # "PSM",
-                # "SMAP",
-                # "MSL",
+                "SMAP",
+                "MSL",
                 "CreditCard",
                 "GECCO",
                 "MITDB",
