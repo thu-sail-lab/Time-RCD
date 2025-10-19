@@ -323,7 +323,7 @@ class basic_metricor():
         """
         # If no threshold provided, find optimal threshold
         if threshold is None:
-            thresholds = np.linspace(0.5, 1, 500)
+            thresholds = np.linspace(0, 1, 1500)
             best_f1 = 0
             best_threshold = 0
 
@@ -367,7 +367,7 @@ class basic_metricor():
 
         if preds is None:
             # print("Calculating afiliation metrics using score thresholds.")
-            p_values = np.linspace(0.8, 1, 300)
+            p_values = np.linspace(0, 1, 1500)
             # print(f"Using {thresholds} thresholds for affiliation metrics.")
             Affiliation_scores = []
             Affiliation_Precision_scores = []
@@ -519,7 +519,7 @@ class basic_metricor():
 
     def __best_ts_fbeta_score_parallel(self, labels: torch.Tensor, scores: torch.Tensor, beta: float,
                                        recall_cardinality_fn: Callable = improved_cardinality_fn,
-                                       weighted_precision: bool = True, n_splits: int = 200) -> Tuple[
+                                       weighted_precision: bool = True, n_splits: int = 1500) -> Tuple[
         float, Dict[str, Any]]:
         """
         Parallel version of best_ts_fbeta_score using ThreadPoolExecutor.
@@ -530,7 +530,7 @@ class basic_metricor():
         
         # Use same parameter range as sequential version for consistency
         device = scores.device
-        p_values = torch.linspace(0.85, 1.0, steps=n_splits, device=device)
+        p_values = torch.linspace(0, 1.0, steps=n_splits, device=device)
         thresholds = torch.quantile(scores, p_values)
 
         label_ranges = self.compute_window_indices(labels)
@@ -593,7 +593,7 @@ class basic_metricor():
 
     def __best_ts_fbeta_score_parallel_chunked(self, labels: torch.Tensor, scores: torch.Tensor, beta: float,
                                                recall_cardinality_fn: Callable = improved_cardinality_fn,
-                                               weighted_precision: bool = True, n_splits: int = 200,
+                                               weighted_precision: bool = True, n_splits: int = 1500,
                                                chunk_size: int = 10, max_workers: int = 8) -> Tuple[float, Dict[str, Any]]:
         """
         Chunked parallel version of best_ts_fbeta_score using ThreadPoolExecutor.
@@ -613,7 +613,7 @@ class basic_metricor():
         
         # Use same parameter range as sequential version for consistency
         device = scores.device
-        p_values = torch.linspace(0.85, 1.0, steps=n_splits, device=device)
+        p_values = torch.linspace(0, 1.0, steps=n_splits, device=device)
         thresholds = torch.quantile(scores, p_values)
 
         label_ranges = self.compute_window_indices(labels)
@@ -828,11 +828,11 @@ class basic_metricor():
 
     def __best_ts_fbeta_score(self, labels: torch.Tensor, scores: torch.Tensor, beta: float,
                               recall_cardinality_fn: Callable = improved_cardinality_fn,
-                              weighted_precision: bool = True, n_splits: int = 200) -> Tuple[float, Dict[str, Any]]:
+                              weighted_precision: bool = True, n_splits: int = 1500) -> Tuple[float, Dict[str, Any]]:
         # Build thresholds from p-values (quantiles/percentiles) of the score distribution
         # p_values in [0, 1]; thresholds = percentile(scores, p_values)
         device = scores.device
-        p_values = torch.linspace(0.85, 1.0, steps=n_splits, device=device)
+        p_values = torch.linspace(0, 1.0, steps=n_splits, device=device)
         thresholds = torch.quantile(scores, p_values)
         print("Here is the shape of thresholds",thresholds.shape)
         precision = torch.empty_like(thresholds, dtype=torch.float)
