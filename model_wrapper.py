@@ -428,7 +428,7 @@ def run_Time_RCD(data,  **kwargs):
     win_size = kwargs.get('win_size', 5000)
     batch_size = kwargs.get('batch_size', 64)
     random_mask = kwargs.get('random_mask', 'random_mask')
-    size = kwargs.get('size', 'small')
+    size = kwargs.get('size', 'full')
     device = kwargs.get('device', '2')  # Extract device parameter
     """
     Wrapper function for Time_RCD model
@@ -440,18 +440,18 @@ def run_Time_RCD(data,  **kwargs):
     if Multi:
         if size == 'small':
             if random_mask == 'random_mask':
-                checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/dataset_10_20.pth'
+                checkpoint_path = './check_points/dataset_10_20.pth'
             else:
-                checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/full_mask_10_20.pth'
+                checkpoint_path = './check_points/full_mask_10_20.pth'
             config.ts_config.patch_size = 16
         else:
             if random_mask == 'random_mask':
-                checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/dataset_15_56.pth'
+                checkpoint_path = './check_points/dataset_15_56.pth'
             else:
-                checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/full_mask_15_56.pth'
+                checkpoint_path = './check_points/full_mask_15_56.pth'
             config.ts_config.patch_size = 32
     else:
-        checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/full_mask_anomaly_head_pretrain_checkpoint_best.pth'
+        checkpoint_path = './check_points/full_mask_anomaly_head_pretrain_checkpoint_best.pth'
         config.ts_config.patch_size = 16
 
     config.cuda_devices = device  # Use the device parameter properly
@@ -459,14 +459,10 @@ def run_Time_RCD(data,  **kwargs):
     config.win_size = win_size
     config.batch_size = batch_size
     print("Data shape:", data.shape)
-    # data = data.reshape(-1,1)  # Ensure data is 2D
     config.ts_config.num_features = data.shape[1]
-    # checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/dataset_10_20.pth'
     print(f"Config: {config}")
     print(f"Checkpoint path: {checkpoint_path}")
     cls = TimeRCDPretrainTester(checkpoint_path, config)
-    # zero_shot returns lists of arrays per batch with shapes (B, seq_len)
-    # print(f'Here is a sample of the before normalization data: {data[:10]}')
     score_list, logit_list = cls.zero_shot(data)
 
     # Concatenate across batches robustly to avoid inhomogeneous shape errors
