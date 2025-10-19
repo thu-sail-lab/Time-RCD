@@ -37,8 +37,10 @@ def get_result(filename):
 
 if __name__ == '__main__':
     # Resolve dataset directory relative to this file (portable across machines)
-
-    Multi = True 
+    parser = argparse.ArgumentParser(description='Running TSB-AD')
+    parser.add_argument('--mode', type=str, default='uni', choices=['uni', 'multi'],
+                    help='Encoder mode: uni for univariate, multi for multivariate')
+    Multi = parser.parse_args().mode == 'multi'
     # Initialize list to store all results
     all_results = []
     all_logits = []
@@ -109,11 +111,12 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
             # print(f"GPU memory cleared before processing {file}")
-        parser = argparse.ArgumentParser(description='Running TSB-AD')
+        
         parser.add_argument('--AD_Name', type=str, default='AnomalyCLIP')
         parser.add_argument('--filename', type=str, default=file)
         parser.add_argument('--data_direc', type=str, default=base_dir)
         parser.add_argument('--save', type=bool, default=True)
+
         # completed_files = os.listdir(f"/home/lihaoyang/Huawei/TSB-AD/{'Multi' if Multi else 'Uni'}_test_"+parser.parse_args().AD_Name)
         # print(f"Completed files in directory: {completed_files}")
         args = parser.parse_args()
@@ -153,7 +156,7 @@ if __name__ == '__main__':
         elif args.AD_Name in Unsupervise_AD_Pool:
             if args.AD_Name == 'AnomalyCLIP':
                 # For AnomalyCLIP, we need to pass the test data directly
-                output, logits = run_Unsupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
+                output, logits = run_Unsupervise_AD(args.AD_Name, data_train, test_data, Multi=Multi, **Optimal_Det_HP)
             else:
                 output = run_Unsupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
         else:
