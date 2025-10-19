@@ -105,20 +105,18 @@ python -m Time-RCD.main mode multi
 If you use this code or the Time-RCD model in your research, please cite:
 
 ```bibtex
-@article{time-rcd,
-  title={Time-RCD: Time Series Anomaly Detection with Reconstruction-based Contrastive Learning},
-  author={Authors},
-  journal={Journal},
-  year={2024}
+@misc{lan2025foundationmodelszeroshottime,
+      title={Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveraging Synthetic Data and Relative Context Discrepancy}, 
+      author={Tian Lan and Hao Duong Le and Jinbo Li and Wenjun He and Meng Wang and Chenghao Liu and Chen Zhang},
+      year={2025},
+      eprint={2509.21190},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2509.21190}, 
 }
 ```
 
-## License
-
-[Specify your license here]
-
 ## Acknowledgments
-
-- TSB-AD Dataset: [The Datum](https://www.thedatum.org/)
-- Time-RCD Model: [thu-sail-lab](https://github.com/thu-sail-lab)
+- TSB-AD: Towards A Reliable Time-Series Anomaly Detection Benchmark [Website](thedatumorg.github.io/TSB-AD/) and [Github](https://github.com/TheDatumOrg/TSB-AD?tab=readme-ov-file#-the-elephant-in-the-room-towards-a-reliable-time-series-anomaly-detection-benchmark)
+- Time-RCD Model: [thu-sail-lab](https://github.com/thu-sail-lab) 
 
