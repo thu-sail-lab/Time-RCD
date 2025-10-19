@@ -7,10 +7,10 @@ import torch
 import random, argparse
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from .evaluation.metrics import get_metrics
-from .utils.slidingWindows import find_length_rank
-from .model_wrapper import *
-from .HP_list import Optimal_Uni_algo_HP_dict, Optimal_Multi_algo_HP_dict
+from evaluation.metrics import get_metrics
+from utils.slidingWindows import find_length_rank
+from model_wrapper import *
+from HP_list import Optimal_Uni_algo_HP_dict, Optimal_Multi_algo_HP_dict
 import os
 # Cuda devices
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
