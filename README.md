@@ -72,7 +72,7 @@ cd ..
 To run anomaly detection on univariate time series:
 
 ```bash
-python -m TimeRCD.main
+python -m Time-RCD.main
 ```
 
 ### Multi-Variable Time Series
@@ -80,10 +80,10 @@ python -m TimeRCD.main
 To run anomaly detection on multivariate time series:
 
 ```bash
-python -m TimeRCD.main mode multi
+python -m Time-RCD.main mode multi
 ```
 
-**Note**: If you run the scripts from within the Time-RCD directory or any other location, you will encounter import errors due to relative import issues. Always run from the parent directory using the module syntax `python -m TimeRCD.main`.
+**Note**: If you run the scripts from within the Time-RCD directory or any other location, you will encounter import errors due to relative import issues. Always run from the parent directory using the module syntax `python -m Time-RCD.main`.
 
 ## Project Structure
 
