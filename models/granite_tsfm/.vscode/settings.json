@@ -1,0 +1,44 @@
+{
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+  },
+  "python.testing.pytestArgs": [
+    "tests",
+    "services"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.ruff": "always"
+  },
+  "cSpell.words": [
+    "czvf",
+    "dtypes",
+    "fastapi",
+    "httpex",
+    "iloc",
+    "jstr",
+    "microdnf",
+    "mytest",
+    "nofile",
+    "numpy",
+    "pytest",
+    "rootdir",
+    "safetensors",
+    "sess",
+    "setuptools",
+    "starlette",
+    "TSFM",
+    "tsfminference",
+    "tslength",
+    "untar",
+    "Uvicorn",
+    "Werkzeug",
+    "xgboostjobs"
+  ],
+  "search.useGlobalIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true,
+  "files.autoSave": "afterDelay",
+  "python.analysis.typeCheckingMode": "standard",
+}
