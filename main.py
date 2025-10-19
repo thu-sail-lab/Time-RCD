@@ -113,11 +113,6 @@ if __name__ == '__main__':
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
-        
-        parser.add_argument('--AD_Name', type=str, default='Time_RCD')
-        parser.add_argument('--filename', type=str, default=file)
-        parser.add_argument('--data_direc', type=str, default=base_dir)
-        parser.add_argument('--save', type=bool, default=True)
 
         args = parser.parse_args()
         if Multi:
