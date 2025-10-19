@@ -462,7 +462,8 @@ def run_AnomalyCLIP(data,  **kwargs):
     # data = data.reshape(-1,1)  # Ensure data is 2D
     config.ts_config.num_features = data.shape[1]
     # checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/dataset_10_20.pth'
-
+    print(f"Config: {config}")
+    print(f"Checkpoint path: {checkpoint_path}")
     cls = AnomalyPretrainTester(checkpoint_path, config)
     # zero_shot returns lists of arrays per batch with shapes (B, seq_len)
     # print(f'Here is a sample of the before normalization data: {data[:10]}')
