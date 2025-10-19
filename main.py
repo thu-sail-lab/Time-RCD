@@ -115,6 +115,10 @@ if __name__ == '__main__':
             torch.cuda.synchronize()
 
         args = parser.parse_args()
+        # Set the file-specific values
+        args.filename = file
+        args.data_direc = base_dir
+        
         if Multi:
             Optimal_Det_HP = Optimal_Multi_algo_HP_dict[args.AD_Name]
         else:
