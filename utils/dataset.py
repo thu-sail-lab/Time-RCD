@@ -3,7 +3,7 @@ import torch.utils.data
 import numpy as np
 epsilon = 1e-8
 
-class AnomalyClipDataset(torch.utils.data.Dataset):
+class TimeRCDDataset(torch.utils.data.Dataset):
 
     def __init__(self, data, window_size, stride=1, normalize=False, pad_to_multiple=True):
         super().__init__()

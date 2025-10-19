@@ -13,16 +13,16 @@ from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore")
 
-from .anomalyclip.dataset import ChatTSAnomalyPretrainDataset
-from .anomalyclip.AnomalyLlava_pretrain_multi import TimeSeriesPretrainModel, create_random_mask, collate_fn, test_collate_fn
-from .anomalyclip.anomaly_llava_config import AnomalyLlavaConfig, default_config
-from ..utils.dataset import AnomalyClipDataset
+from .time_rcd.dataset import ChatTSTimeRCDPretrainDataset
+from .time_rcd.TimeRCD_pretrain_multi import TimeSeriesPretrainModel, create_random_mask, collate_fn, test_collate_fn
+from .time_rcd.time_rcd_config import TimeRCDConfig, default_config
+from ..utils.dataset import TimeRCDDataset
 
-# PYTHONPATH=/home2/lijinbo/Projects/AnomalyLlava-master/ python src/models/Moirai/Anomaly_pretrain_test_multi.py
-class AnomalyPretrainTester:
+# PYTHONPATH=/home2/lijinbo/Projects/Time_RCD-master/ python src/models/Moirai/TimeRCD_pretrain_test_multi.py
+class TimeRCDPretrainTester:
     """Tester class for visualizing pretrained model results."""
 
-    def __init__(self, checkpoint_path: str, config: AnomalyLlavaConfig):
+    def __init__(self, checkpoint_path: str, config: TimeRCDConfig):
         self.config = config
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.win_size = config.win_size
@@ -323,7 +323,7 @@ class AnomalyPretrainTester:
                    max_test_data: int = 100):
         """Test the model on a dataset and visualize results."""
         # Load test dataset
-        full_test_dataset = ChatTSAnomalyPretrainDataset(data_path, filename, split="test", train_ratio=0)
+        full_test_dataset = ChatTSTimeRCDPretrainDataset(data_path, filename, split="test", train_ratio=0)
         print(f'Length of dataset: {len(full_test_dataset)}')
 
         # Limit to max_test_data samples
@@ -371,7 +371,7 @@ class AnomalyPretrainTester:
            self.win_size = len(data)
 
         test_loader = DataLoader(
-            dataset=AnomalyClipDataset(data, window_size=self.win_size, stride=self.win_size, normalize=True),
+            dataset=TimeRCDDataset(data, window_size=self.win_size, stride=self.win_size, normalize=True),
             batch_size=self.batch_size,
             collate_fn=test_collate_fn,
             num_workers=0,
@@ -454,7 +454,7 @@ class AnomalyPretrainTester:
                                                   reconstructed=reconstructed.cpu().numpy(),
                                                   mask=mask_tensor[0].cpu().numpy(),
                                                   scores=score.cpu().numpy(),
-                                                  save_path=f"/home/lihaoyang/Huawei/TSB-AD/Synthetic/random_mask_anomaly_head_AnomalyCLIP_Reconstruction_5000/plot/",
+                                                  save_path=f"/home/lihaoyang/Huawei/TSB-AD/Synthetic/random_mask_anomaly_head_Time_RCD_Reconstruction_5000/plot/",
                                                   index=data_index)
 
         return scores
@@ -577,7 +577,7 @@ class Dataset_UCR(Dataset):
 
 
 def main():
-    # PYTHONPATH=/home2/lijinbo/Projects/AnomalyLlava-master/ python src/models/Moirai/Anomaly_pretrain_test_multi.py
+    # PYTHONPATH=/home2/lijinbo/Projects/Time_RCD-master/ python src/models/Moirai/TimeRCD_pretrain_test_multi.py
     """Main function to test the pretrained model."""
     # Configuration
     # Force CPU usage
@@ -600,7 +600,7 @@ def main():
         return
 
     # Initialize tester
-    tester = AnomalyPretrainTester(checkpoint_path, config)
+    tester = TimeRCDPretrainTester(checkpoint_path, config)
 
     # Test the model - only generate visualizations
     try:

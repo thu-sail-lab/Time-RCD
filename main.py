@@ -112,7 +112,7 @@ if __name__ == '__main__':
             torch.cuda.synchronize()
             # print(f"GPU memory cleared before processing {file}")
         
-        parser.add_argument('--AD_Name', type=str, default='AnomalyCLIP')
+        parser.add_argument('--AD_Name', type=str, default='Time_RCD')
         parser.add_argument('--filename', type=str, default=file)
         parser.add_argument('--data_direc', type=str, default=base_dir)
         parser.add_argument('--save', type=bool, default=True)
@@ -154,8 +154,8 @@ if __name__ == '__main__':
         if args.AD_Name in Semisupervise_AD_Pool:
             output = run_Semisupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
         elif args.AD_Name in Unsupervise_AD_Pool:
-            if args.AD_Name == 'AnomalyCLIP':
-                # For AnomalyCLIP, we need to pass the test data directly
+            if args.AD_Name == 'Time_RCD':
+                # For Time_RCD, we need to pass the test data directly
                 output, logits = run_Unsupervise_AD(args.AD_Name, data_train, test_data, Multi=Multi, **Optimal_Det_HP)
             else:
                 output = run_Unsupervise_AD(args.AD_Name, data_train, test_data, **Optimal_Det_HP)
@@ -313,7 +313,7 @@ if __name__ == '__main__':
 #     parser.add_argument('--filename', type=str, default='local_combined_samples.pkl')
 #     parser.add_argument('--data_direc', type=str, default=base_dir)
 #     parser.add_argument('--save', type=bool, default=True)
-#     parser.add_argument('--AD_Name', type=str, default='AnomalyCLIP')
+#     parser.add_argument('--AD_Name', type=str, default='Time_RCD')
 #     args = parser.parse_args()
 #
 #     # Read data using a proper path join
@@ -342,8 +342,8 @@ if __name__ == '__main__':
 #             if args.AD_Name in Semisupervise_AD_Pool:
 #                 output = run_Semisupervise_AD(args.AD_Name, data_train, data, **Optimal_Det_HP)
 #             elif args.AD_Name in Unsupervise_AD_Pool:
-#                 if 'AnomalyCLIP' in args.AD_Name:
-#                     # For AnomalyCLIP, we need to pass the test data directly
+#                 if 'Time_RCD' in args.AD_Name:
+#                     # For Time_RCD, we need to pass the test data directly
 #                     output, logits = run_Unsupervise_AD(args.AD_Name, test_data, **Optimal_Det_HP, data_index=index)
 #                 else:
 #                     output = run_Unsupervise_AD(args.AD_Name, test_data, **Optimal_Det_HP)

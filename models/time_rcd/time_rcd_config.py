@@ -48,10 +48,10 @@ class LLMConfig:
 
 
 @dataclass
-class AnomalyLlavaConfig:
-    """Configuration class for AnomalyLlava model.
+class TimeRCDConfig:
+    """Configuration class for Time_RCD model.
 
-    This class contains all hyperparameters and settings for the AnomalyLlava model.
+    This class contains all hyperparameters and settings for the Time_RCD model.
     It is implemented as a dataclass for easy instantiation and modification.
 
     Attributes:
@@ -67,7 +67,7 @@ class AnomalyLlavaConfig:
         data_path: Path to dataset.
         load_data: Whether to load data from checkpoint.
         ts_encoder_path: Path to time series encoder checkpoint.
-        anomaly_llava_path: Path to anomaly llava checkpoint.
+        time_rcd_path: Path to Time_RCD checkpoint.
         checkpoint_dir: Directory for saving checkpoints.
         log_freq: Logging frequency in steps.
         save_step_freq: Checkpoint saving frequency in steps.
@@ -98,8 +98,8 @@ class AnomalyLlavaConfig:
     # enable_anomaly_detection_head: bool = False
 
     # Data parameters
-    data_path: str = "/home3/lantian/ChatTS/data/ChatTSQA/anomaly_llava_dataset_20250614_133353"
-    test_data_path: str = "/home3/lantian/ChatTS/data/ChatTSQA/anomaly_llava_test_dataset_20250621_090751"
+    data_path: str = "/home3/lantian/ChatTS/data/ChatTSQA/time_rcd_dataset_20250614_133353"
+    test_data_path: str = "/home3/lantian/ChatTS/data/ChatTSQA/time_rcd_test_dataset_20250621_090751"
     pretrain_data_path: str = "/home2/lijinbo/Projects/dataset/ChatTS/result"
 
     # Load data
@@ -107,14 +107,14 @@ class AnomalyLlavaConfig:
     load_pretrain_path: str = "experiments/checkpoints/pretrain/pretrain_checkpoint_latest.pth"
     load_path: str = "experiments/checkpoints/checkpoint_step.pth"
     # ts_encoder_path: str = "experiments/checkpoints/checkpoint_step.pth"
-    # anomaly_llava_path: str = "experiments/checkpoints/anomaly_llava_qa.pt"
+    # time_rcd_path: str = "experiments/checkpoints/time_rcd_qa.pt"
 
     # Logging and checkpoint parameters
     checkpoint_dir: str = "experiments/checkpoints"
     log_freq: int = 100
     save_freq: int = 10
     save_step_freq: int = 100
-    model_prefix: str = "anomaly_llava_qa_by_pretrain"
+    model_prefix: str = "time_rcd_qa_by_pretrain"
 
     # Evaluation parameters
     test_batch_limit: int = 20
@@ -151,4 +151,4 @@ class AnomalyLlavaConfig:
             "device": self.device,
         }
 
-default_config = AnomalyLlavaConfig()
+default_config = TimeRCDConfig()

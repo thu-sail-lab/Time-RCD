@@ -84,7 +84,7 @@ Multi_algo_HP_dict = {
     'OFA': {
         'win_size': [50, 100, 150]
     },
-    'AnomalyCLIP': {
+    'Time_RCD': {
         'win_size': 7000
     },
     'TSPulse': {
@@ -122,7 +122,7 @@ Optimal_Multi_algo_HP_dict = {
     'TimesNet': {'win_size': 96, 'lr': 0.0001},
     'FITS': {'win_size': 100, 'lr': 0.001},
     'OFA': {'win_size': 50},
-    'AnomalyCLIP': {'win_size':5000, 'batch_size': 1},
+    'Time_RCD': {'win_size':5000, 'batch_size': 1},
     'DADA': {'win_size': 100, 'batch_size': 64},
     'TSPulse': {'win_size': 96 , 'batch_size': 64, 'aggregation_length': 64, 'aggr_function': 'max', 'smoothing_length': 8}
 }
@@ -230,7 +230,7 @@ Uni_algo_HP_dict = {
     'OFA': {
         'win_size': [50, 100, 150]
     },    
-    # 'AnomalyCLIP': {
+    # 'Time_RCD': {
         # 'win_size': [1000, 2000, 3000, 4000, 5000, 6000, 8000, 10000],
         # 'batch_size': [32, 64, 128]
     # }
@@ -275,9 +275,9 @@ Optimal_Uni_algo_HP_dict = {
     'M2N2': {},
     'DADA': {'win_size': 100},
     'Time_MOE': {'win_size':96},
-    'AnomalyCLIP': {'win_size':5000, 'batch_size': 64},
-    'AnomalyCLIP_Reconstruction': {'win_size':5000, 'batch_size': 128},
-    'AnomalyCLIP_Reconstruction_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
-    'AnomalyCLIP_Reconstruction_Random_Mask_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
+    'Time_RCD': {'win_size':5000, 'batch_size': 64},
+    'Time_RCD_Reconstruction': {'win_size':5000, 'batch_size': 128},
+    'Time_RCD_Reconstruction_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
+    'Time_RCD_Reconstruction_Random_Mask_Anomaly_Head': {'win_size':5000, 'batch_size': 128},
     'TSPulse': {'win_size':96, 'batch_size': 64, 'aggregation_length': 64, 'aggr_function': 'max', 'smoothing_length': 8}
 }

@@ -4,7 +4,7 @@ from .utils.slidingWindows import find_length_rank
 
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
                         'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama',
-                       'TimesFM', 'Chronos', 'MOMENT_ZS', 'DADA', 'Time_MOE', 'AnomalyCLIP', 'AnomalyCLIP_Reconstruction', 'AnomalyCLIP_Reconstruction_Anomaly_Head', 'AnomalyCLIP_Reconstruction_Random_Mask_Anomaly_Head', 'TSPulse']
+                       'TimesFM', 'Chronos', 'MOMENT_ZS', 'DADA', 'Time_MOE', 'Time_RCD', 'Time_RCD_Reconstruction', 'Time_RCD_Reconstruction_Anomaly_Head', 'Time_RCD_Reconstruction_Random_Mask_Anomaly_Head', 'TSPulse']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
                         'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', ]
 
@@ -423,7 +423,7 @@ def run_Time_MOE(data, device=0, win_size=64, batch_size=32):
     score = clf.zero_shot(data)
     return score.ravel()
 
-def run_AnomalyCLIP(data,  **kwargs):
+def run_Time_RCD(data,  **kwargs):
     Multi = kwargs.get('Multi', False)
     win_size = kwargs.get('win_size', 5000)
     batch_size = kwargs.get('batch_size', 64)
@@ -431,10 +431,10 @@ def run_AnomalyCLIP(data,  **kwargs):
     size = kwargs.get('size', 'small')
     device = kwargs.get('device', '2')  # Extract device parameter
     """
-    Wrapper function for AnomalyCLIP model
+    Wrapper function for Time_RCD model
     """
-    from .models.AnomalyCLIP import AnomalyPretrainTester
-    from .models.anomalyclip.anomaly_llava_config import AnomalyLlavaConfig, default_config
+    from .models.TimeRCD import TimeRCDPretrainTester
+    from .models.time_rcd.time_rcd_config import TimeRCDConfig, default_config
 
     config = default_config
     if Multi:
@@ -464,7 +464,7 @@ def run_AnomalyCLIP(data,  **kwargs):
     # checkpoint_path = '/home/lihaoyang/Huawei/TSB-AD/check_points/dataset_10_20.pth'
     print(f"Config: {config}")
     print(f"Checkpoint path: {checkpoint_path}")
-    cls = AnomalyPretrainTester(checkpoint_path, config)
+    cls = TimeRCDPretrainTester(checkpoint_path, config)
     # zero_shot returns lists of arrays per batch with shapes (B, seq_len)
     # print(f'Here is a sample of the before normalization data: {data[:10]}')
     score_list, logit_list = cls.zero_shot(data)
@@ -475,78 +475,6 @@ def run_AnomalyCLIP(data,  **kwargs):
 
     return score, logit
 
-def run_AnomalyCLIP_Reconstruction(data, data_index,win_size=5000, batch_size=64):
-    """
-    Wrapper function for AnomalyCLIP model
-    """
-    from .models.anomalyCLIP_reconstruct import AnomalyPretrainTester
-    from .models.anomalyclip.anomaly_llava_config import AnomalyLlavaConfig, default_config
-
-    config = default_config
-    config.ts_config.patch_size = 32  # Changed from 16 to 32 to match checkpoint
-    config.cuda_devices = "3"
-    config.win_size = win_size
-    config.batch_size = batch_size
-    checkpoint_path = '/home/lihaoyang/Huawei/AnomalyReconstruction/Moirai/full_mask_pretrain_checkpoint_best.pth'
-
-    cls = AnomalyPretrainTester(checkpoint_path, config)
-    # zero_shot returns lists of arrays per batch with shapes (B, seq_len)
-    score_list  = cls.zero_shot_reconstruct(data, visualize=True, data_index=data_index)
-    # print(type(score_list[0]))
-
-    score = score_list[0].detach().cpu().numpy()
-    # print("Here is sample of the score:", score[:10])
-
-    return score, None
-
-
-def run_AnomalyCLIP_Reconstruction_Anomaly_Head(data, data_index, win_size=5000, batch_size=64):
-    """
-    Wrapper function for AnomalyCLIP model
-    """
-    from .models.AnomalyCLIP import AnomalyPretrainTester
-    from .models.anomalyclip.anomaly_llava_config import AnomalyLlavaConfig, default_config
-
-    config = default_config
-    config.ts_config.patch_size = 32  # Changed from 16 to 32 to match checkpoint
-    config.cuda_devices = "3"
-    config.win_size = win_size
-    config.batch_size = batch_size
-    checkpoint_path = '/home/lihaoyang/Huawei/AnomalyReconstruction/Moirai/full_mask_anomaly_head_pretrain_checkpoint_best.pth'
-
-    cls = AnomalyPretrainTester(checkpoint_path, config)
-    # zero_shot returns lists of arrays per batch with shapes (B, seq_len)
-    score_list = cls.zero_shot_reconstruct(data, visualize=True, data_index=data_index)
-    # print(type(score_list[0]))
-
-    score = score_list[0].detach().cpu().numpy()
-    # print("Here is sample of the score:", score[:10])
-
-    return score, None
-
-def run_AnomalyCLIP_Reconstruction_Random_Mask_Anomaly_Head(data, data_index, win_size=5000, batch_size=64):
-    """
-    Wrapper function for AnomalyCLIP model
-    """
-    from .models.AnomalyCLIP import AnomalyPretrainTester
-    from .models.anomalyclip.anomaly_llava_config import AnomalyLlavaConfig, default_config
-
-    config = default_config
-    config.ts_config.patch_size = 32  # Changed from 16 to 32 to match checkpoint
-    config.cuda_devices = "3"
-    config.win_size = win_size
-    config.batch_size = batch_size
-    checkpoint_path = '/home/lihaoyang/Huawei/AnomalyReconstruction/AnomalyLlava/experiments/checkpoints/pretrain/checkpoint.bin'
-
-    cls = AnomalyPretrainTester(checkpoint_path, config)
-    # zero_shot returns lists of arrays per batch with shapes (B, seq_len)
-    score_list = cls.zero_shot_reconstruct(data, visualize=True, data_index=data_index)
-    # print(type(score_list[0]))
-
-    score = score_list[0].detach().cpu().numpy()
-    # print("Here is sample of the score:", score[:10])
-
-    return score, None
 
 def run_TSPulse(data, win_size=256, batch_size=64, prediction_mode=None, aggregation_length=64, 
                 aggr_function="max", smoothing_length=8, least_significant_scale=0.01, 

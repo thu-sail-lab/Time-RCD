@@ -14,16 +14,16 @@ import numpy as np
 from typing import Tuple, List, Dict, Any, Union, Optional
 from dataclasses import dataclass
 
-from .dataset import ChatTSAnomalyPretrainDataset
+from .dataset import ChatTSTimeRCDPretrainDataset
 from .ts_encoder_bi_bias import TimeSeriesEncoder
-from .anomaly_llava_config import AnomalyLlavaConfig, default_config
+from .time_rcd_config import TimeRCDConfig, default_config
 
 import warnings
 
 warnings.filterwarnings("ignore")
 
 
-# PYTHONPATH=/home2/lijinbo/Projects/AnomalyLlava-master/ python src/models/Moirai/AnomalyLlava_pretrain_multi.py
+# PYTHONPATH=/home2/lijinbo/Projects/Time_RCD-master/ python src/models/Moirai/TimeRCD_pretrain_multi.py
 @dataclass
 class PretrainBatch:
     """Batch structure for pretraining tasks."""
@@ -36,7 +36,7 @@ class PretrainBatch:
 class TimeSeriesPretrainModel(nn.Module):
     """Model for time series pretraining with masked reconstruction and anomaly detection."""
 
-    def __init__(self, config: AnomalyLlavaConfig):
+    def __init__(self, config: TimeRCDConfig):
         super().__init__()
         self.config = config
 
@@ -258,7 +258,7 @@ def set_seed(seed: int) -> None:
         torch.backends.cudnn.benchmark = False
 
 
-def setup_distributed(rank: int, world_size: int, config: AnomalyLlavaConfig) -> None:
+def setup_distributed(rank: int, world_size: int, config: TimeRCDConfig) -> None:
     """Setup distributed training environment."""
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = config.dist_port
@@ -288,7 +288,7 @@ def cleanup_distributed() -> None:
 
 def evaluate_epoch(test_loader: DataLoader,
                    model: nn.Module,
-                   config: AnomalyLlavaConfig,
+                   config: TimeRCDConfig,
                    device: torch.device,
                    rank: int) -> float:
     """Evaluate model on test dataset."""
@@ -338,7 +338,7 @@ def evaluate_epoch(test_loader: DataLoader,
 def train_epoch(train_loader: DataLoader,
                 model: nn.Module,
                 optimizer: optim.Optimizer,
-                config: AnomalyLlavaConfig,
+                config: TimeRCDConfig,
                 device: torch.device,
                 epoch: int,
                 rank: int,
@@ -416,7 +416,7 @@ def train_epoch(train_loader: DataLoader,
 
 def save_checkpoint(model: nn.Module,
                     optimizer: optim.Optimizer,
-                    config: AnomalyLlavaConfig,
+                    config: TimeRCDConfig,
                     epoch: int,
                     avg_loss: float,
                     rank: int = 0,
@@ -468,7 +468,7 @@ def save_checkpoint(model: nn.Module,
         print(f"Best pretrained time series encoder saved to {best_encoder_path}")
 
 
-def train_multiple_datasets(dataset_filenames: List[str], config: AnomalyLlavaConfig) -> None:
+def train_multiple_datasets(dataset_filenames: List[str], config: TimeRCDConfig) -> None:
     """Train on multiple datasets sequentially with model weight continuation."""
     print(f'\n{"=" * 50}')
     print(f"Starting Multi-Dataset Sequential Training")
@@ -550,7 +550,7 @@ def train_multiple_datasets(dataset_filenames: List[str], config: AnomalyLlavaCo
     print(f"{'=' * 50}")
 
 
-def train_worker(rank: int, world_size: int, config: AnomalyLlavaConfig, filename: str = None) -> None:
+def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: str = None) -> None:
     """Training worker function for each process."""
     print(f"Running DDP on rank {rank} with world_size {world_size} for dataset: {filename}")
 
@@ -620,8 +620,8 @@ def train_worker(rank: int, world_size: int, config: AnomalyLlavaConfig, filenam
         scaler = torch.amp.GradScaler() if config.mixed_precision else None
 
         # Load data
-        train_dataset = ChatTSAnomalyPretrainDataset(config.pretrain_data_path, filename, split="train")
-        test_dataset = ChatTSAnomalyPretrainDataset(config.pretrain_data_path, filename, split="test")
+        train_dataset = ChatTSTimeRCDPretrainDataset(config.pretrain_data_path, filename, split="train")
+        test_dataset = ChatTSTimeRCDPretrainDataset(config.pretrain_data_path, filename, split="test")
 
         # Create distributed samplers
         train_sampler = DistributedSampler(
@@ -717,7 +717,7 @@ def train_worker(rank: int, world_size: int, config: AnomalyLlavaConfig, filenam
 
 
 def main() -> None:
-    # PYTHONPATH=/home2/lijinbo/Projects/AnomalyLlava-master/ python src/models/Moirai/AnomalyLlava_pretrain_multi.py
+    # PYTHONPATH=/home2/lijinbo/Projects/Time_RCD-master/ python src/models/Moirai/TimeRCD_pretrain_multi.py
     """Main function to launch distributed pretraining."""
     # Load configuration
     config = default_config

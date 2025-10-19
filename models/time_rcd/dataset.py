@@ -9,7 +9,7 @@ from typing import Dict, List, Union, Optional, Tuple
 from pathlib import Path
 
 
-class ChatTSAnomalyPretrainDataset(Dataset):
+class ChatTSTimeRCDPretrainDataset(Dataset):
     def __init__(self,
                  dataset_dir: str,
                  filename: str,
@@ -43,12 +43,12 @@ class ChatTSAnomalyPretrainDataset(Dataset):
         return time_series, normal_time_series, labels, attribute
 
 
-class ChatTSAnomalyQADataset(Dataset):
+class ChatTSTimeRCDQADataset(Dataset):
     """Dataset class for time series anomaly detection with QA pairs.
 
     This dataset loads time series data and corresponding question-answer pairs
     for anomaly detection tasks. It supports train/val split and efficient loading
-    of series data from the anomaly_llava_datasets format.
+    of series data from the time_rcd_datasets format.
 
     Attributes:
         split (str): Dataset split, either 'train' or 'val'
