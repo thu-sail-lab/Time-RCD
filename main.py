@@ -72,7 +72,7 @@ if __name__ == '__main__':
                 "CATSv2",
                 "TAO"
             ]
-        base_dir = './Datasets/TSB-AD-M/'
+        base_dir = './datasets/TSB-AD-M/'
         files = os.listdir(base_dir)
     else:
         filter_list = [
@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 "YAHOO",
                 "UCR"
                 ]
-        base_dir = './Datasets/TSB-AD-U/'
+        base_dir = './datasets/TSB-AD-U/'
         files = os.listdir(base_dir)
 
 
