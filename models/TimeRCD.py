@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 from .time_rcd.dataset import ChatTSTimeRCDPretrainDataset
 from .time_rcd.TimeRCD_pretrain_multi import TimeSeriesPretrainModel, create_random_mask, collate_fn, test_collate_fn
 from .time_rcd.time_rcd_config import TimeRCDConfig, default_config
-from ..utils.dataset import TimeRCDDataset
+from utils.dataset import TimeRCDDataset
 
 class TimeRCDPretrainTester:
     """Tester class for visualizing pretrained model results."""

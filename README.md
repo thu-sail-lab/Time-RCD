@@ -22,7 +22,6 @@ conda activate Time-RCD
 ```bash
 wget https://anonymous.4open.science/api/repo/TimeRCD-5BE1/zip -O Time-RCD.zip
 unzip Time-RCD.zip -d Time-RCD
-cd ..
 ```
 or dowload from the link: https://anonymous.4open.science/r/TimeRCD-5BE1 and unzip
 
@@ -62,19 +61,14 @@ Download the pre-trained model checkpoints from Hugging Face:
 ```bash
 huggingface-cli download thu-sail-lab/Time-RCD checkpoints.zip --local-dir ./
 unzip checkpoints.zip
-cd ..
 ```
-
-## Usage
-
-⚠️ **Important**: You must run the commands from the parent directory of the Time-RCD repository to avoid relative import problems. Make sure you have executed `cd ..` after downloading the checkpoints.
 
 ### Single Variable Time Series
 
 To run anomaly detection on univariate time series:
 
 ```bash
-python -m Time-RCD.main
+python main.py
 ```
 
 ### Multi-Variable Time Series
@@ -82,10 +76,9 @@ python -m Time-RCD.main
 To run anomaly detection on multivariate time series:
 
 ```bash
-python -m Time-RCD.main mode multi
+python main.py --mode multi
 ```
 
-**Note**: If you run the scripts from within the Time-RCD directory or any other location, you will encounter import errors due to relative import issues. Always run from the parent directory using the module syntax `python -m Time-RCD.main`.
 
 ## Project Structure
 

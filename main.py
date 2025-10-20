@@ -11,10 +11,10 @@ import torch
 import random, argparse
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from .evaluation.metrics import get_metrics
-from .utils.slidingWindows import find_length_rank
-from .model_wrapper import *
-from .HP_list import Optimal_Uni_algo_HP_dict, Optimal_Multi_algo_HP_dict
+from evaluation.metrics import get_metrics
+from utils.slidingWindows import find_length_rank
+from model_wrapper import *
+from HP_list import Optimal_Uni_algo_HP_dict, Optimal_Multi_algo_HP_dict
 import os
 # Cuda devices
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                 "CATSv2",
                 "TAO"
             ]
-        base_dir = 'Time-RCD/datasets/TSB-AD-M/'
+        base_dir = 'datasets/TSB-AD-M/'
         files = os.listdir(base_dir)
     else:
         filter_list = [
@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 # "YAHOO",
                 # "UCR"
                 ]
-        base_dir = 'Time-RCD/datasets/TSB-AD-U/'
+        base_dir = 'datasets/TSB-AD-U/'
         files = os.listdir(base_dir)
 
 
@@ -172,6 +172,8 @@ if __name__ == '__main__':
             evaluation_result_logits = None
             if logits is not None:
                 evaluation_result_logits = get_metrics(logits_aligned, label_aligned, slidingWindow=slidingWindow, pred=logits_aligned > (np.mean(logits_aligned)+3*np.std(logits_aligned)))
+            
+            print(evaluation_result)
 
             # Prepare result dictionary with filename and all metrics
             result_dict = {
