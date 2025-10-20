@@ -17,12 +17,14 @@ conda create -n Time-RCD python=3.10
 conda activate Time-RCD
 ```
 
-### 2. Clone the Repository
+### 2. Download the Repository
 
 ```bash
-git clone https://github.com/thu-sail-lab/Time-RCD.git
-cd Time-RCD
+wget https://anonymous.4open.science/api/repo/TimeRCD-5BE1/zip -O Time-RCD.zip
+unzip Time-RCD.zip -d Time-RCD
+cd ..
 ```
+or dowload from the link: https://anonymous.4open.science/r/TimeRCD-5BE1 and unzip
 
 ### 3. Download TSB-AD Datasets
 
@@ -58,7 +60,7 @@ pip install jaxtyping einops pandas numpy scikit-learn transformers torch torchv
 Download the pre-trained model checkpoints from Hugging Face:
 
 ```bash
-huggingface-cli download thu-sail-lab/Time_RCD checkpoints.zip --local-dir ./
+huggingface-cli download thu-sail-lab/Time-RCD checkpoints.zip --local-dir ./
 unzip checkpoints.zip
 cd ..
 ```
@@ -99,24 +101,4 @@ python -m Time-RCD.main mode multi
 ├── model_wrapper.py     # Model wrapper for different algorithms
 └── README.md            # This file
 ```
-
-## Citation
-
-If you use this code or the Time-RCD model in your research, please cite:
-
-```bibtex
-@misc{lan2025foundationmodelszeroshottime,
-      title={Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveraging Synthetic Data and Relative Context Discrepancy}, 
-      author={Tian Lan and Hao Duong Le and Jinbo Li and Wenjun He and Meng Wang and Chenghao Liu and Chen Zhang},
-      year={2025},
-      eprint={2509.21190},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2509.21190}, 
-}
-```
-
-## Acknowledgments
-- TSB-AD: Towards A Reliable Time-Series Anomaly Detection Benchmark [Website](thedatumorg.github.io/TSB-AD/) and [Github](https://github.com/TheDatumOrg/TSB-AD?tab=readme-ov-file#-the-elephant-in-the-room-towards-a-reliable-time-series-anomaly-detection-benchmark)
-- Time-RCD Model: [thu-sail-lab](https://github.com/thu-sail-lab) 
 

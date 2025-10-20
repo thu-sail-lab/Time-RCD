@@ -72,7 +72,7 @@ if __name__ == '__main__':
                 "CATSv2",
                 "TAO"
             ]
-        base_dir = 'TSB_AD_Time_RCD/datasets/TSB-AD-M/'
+        base_dir = 'Time-RCD/datasets/TSB-AD-M/'
         files = os.listdir(base_dir)
     else:
         filter_list = [
@@ -89,19 +89,19 @@ if __name__ == '__main__':
                     "SVDB",
                     "OPP",
 
-                "IOPS",
-                "MGAB",
-                "NAB",
-                "NEK",
+                # "IOPS",
+                # "MGAB",
+                # "NAB",
+                # "NEK",
                 # "Power",
                 # "SED",
-                "Stock",
-                "TODS",
-                "WSD",
-                "YAHOO",
-                "UCR"
+                # "Stock",
+                # "TODS",
+                # "WSD",
+                # "YAHOO",
+                # "UCR"
                 ]
-        base_dir = 'TSB_AD_Time_RCD/datasets/TSB-AD-U/'
+        base_dir = 'Time-RCD/datasets/TSB-AD-U/'
         files = os.listdir(base_dir)
 
 
@@ -132,9 +132,7 @@ if __name__ == '__main__':
         df_path = os.path.join(args.data_direc, args.filename)
         df = pd.read_csv(df_path).dropna()
         data = df.iloc[:, 0:-1].values.astype(float)
-        print(f"Processing file: {args.filename}, Data shape: {data.shape}")
         label = df['Label'].astype(int).to_numpy()
-        print(f"Label shape: {label.shape}")
 
         slidingWindow = find_length_rank(data, rank=1)
         train_index = args.filename.split('.')[0].split('_')[-3]
@@ -143,9 +141,7 @@ if __name__ == '__main__':
         label_test = label[int(train_index):]
 
 
-        print(f"Train data shape: {data_train.shape}, Test data shape: {test_data.shape}, Label test shape: {label_test.shape}")
 
-        print(f"Optimal Hyperparameters for {args.AD_Name}: {Optimal_Det_HP}")
         logits = None  # ensure defined irrespective of branch
 
         print(f"Running {args.AD_Name} on {args.filename}...")
@@ -171,14 +167,11 @@ if __name__ == '__main__':
             if logits is not None:
                 logits_aligned = logits[:min_length]
 
-            print(f"Original shapes - Output: {output.shape}, Label: {label_test.shape}")
-            print(f"Aligned shapes - Output: {output_aligned.shape}, Label: {label_aligned.shape}")
 
             evaluation_result = get_metrics(output_aligned, label_aligned, slidingWindow=slidingWindow, pred=output_aligned > (np.mean(output_aligned)+3*np.std(output_aligned)))
             evaluation_result_logits = None
             if logits is not None:
                 evaluation_result_logits = get_metrics(logits_aligned, label_aligned, slidingWindow=slidingWindow, pred=logits_aligned > (np.mean(logits_aligned)+3*np.std(logits_aligned)))
-            print('Evaluation Result: ', evaluation_result)
 
             # Prepare result dictionary with filename and all metrics
             result_dict = {
@@ -194,7 +187,6 @@ if __name__ == '__main__':
             }
             all_results.append(result_dict)
 
-            print(f"Results for {args.filename}: {result_dict}")
             if logits is not None:
                 logit_dict = {
                     'filename': args.filename,
@@ -208,7 +200,6 @@ if __name__ == '__main__':
                     **evaluation_result_logits  # Unpack all evaluation metrics for logits
                 }
                 all_logits.append(logit_dict)
-            print(f"Logits results for {args.filename}: {logit_dict}" if logits is not None else "No logits available")
             # Save value, label, and anomaly scores to pickle file
             if args.save:
                 output_filename = f'{args.filename.split(".")[0]}_results.pkl'

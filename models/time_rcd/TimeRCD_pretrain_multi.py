@@ -22,8 +22,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-
-# PYTHONPATH=/home2/lijinbo/Projects/Time_RCD-master/ python src/models/Moirai/TimeRCD_pretrain_multi.py
 @dataclass
 class PretrainBatch:
     """Batch structure for pretraining tasks."""
