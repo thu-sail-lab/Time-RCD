@@ -16,9 +16,8 @@ warnings.filterwarnings("ignore")
 from .time_rcd.dataset import ChatTSTimeRCDPretrainDataset
 from .time_rcd.TimeRCD_pretrain_multi import TimeSeriesPretrainModel, create_random_mask, collate_fn, test_collate_fn
 from .time_rcd.time_rcd_config import TimeRCDConfig, default_config
-from ..utils.dataset import TimeRCDDataset
+from utils.dataset import TimeRCDDataset
 
-# PYTHONPATH=/home2/lijinbo/Projects/Time_RCD-master/ python src/models/Moirai/TimeRCD_pretrain_test_multi.py
 class TimeRCDPretrainTester:
     """Tester class for visualizing pretrained model results."""
 
@@ -574,49 +573,3 @@ class Dataset_UCR(Dataset):
 
     def __getitem__(self, index):
         return np.float32(self.test[index]), self.mask[index]
-
-
-def main():
-    # PYTHONPATH=/home2/lijinbo/Projects/Time_RCD-master/ python src/models/Moirai/TimeRCD_pretrain_test_multi.py
-    """Main function to test the pretrained model."""
-    # Configuration
-    # Force CPU usage
-    # torch.cuda.is_available = lambda: False
-    config = default_config
-    config.ts_config.patch_size = 4
-    config.cuda_devices = "5"
-    # Paths - update these according to your setup
-    checkpoint_path = "experiments/checkpoints/pretrain_single/pretrain_checkpoint_best.pth"
-    data_path = '/home2/lijinbo/Projects/dataset/ChatTS/multivariate_samples_test/'
-    filename = 'dataset_0_1.pkl'
-    save_dir = "visualizations/multi_test"
-
-    num_features = int(os.path.splitext(filename)[0].split('_')[-1])
-    config.ts_config.num_features = num_features
-
-    # Check if checkpoint exists
-    if not os.path.exists(checkpoint_path):
-        print(f"Checkpoint not found: {checkpoint_path}")
-        return
-
-    # Initialize tester
-    tester = TimeRCDPretrainTester(checkpoint_path, config)
-
-    # Test the model - only generate visualizations
-    try:
-        tester.test_model(
-            data_path=data_path,
-            filename=filename,
-            num_samples=5,  # Number of samples to visualize
-            save_dir=save_dir,
-            max_test_data=5  # Only test on 100 samples
-        )
-
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-
-
-if __name__ == "__main__":
-    main()
