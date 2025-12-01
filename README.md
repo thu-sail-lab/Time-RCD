@@ -28,10 +28,9 @@ conda activate Time-RCD
 ### 2. Download the Repository
 
 ```bash
-wget https://anonymous.4open.science/api/repo/TimeRCD-5BE1/zip -O Time-RCD.zip
-unzip Time-RCD.zip -d Time-RCD
+git clone https://github.com/thu-sail-lab/Time-RCD.git
+cd Time-RCD
 ```
-or dowload from the link: https://anonymous.4open.science/r/TimeRCD-5BE1 and unzip
 
 ### 3. Download TSB-AD Datasets
 
