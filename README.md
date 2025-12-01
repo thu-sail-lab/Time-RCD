@@ -1,5 +1,13 @@
 # Time-RCD: Time Series Anomaly Detection with TSB-AD Benchmark
 
+## 🚀 **Try the Demo**
+
+**[🌟 Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/thu-sail-lab/Time_RCD)** - Experience Time-RCD in action with our interactive demo!
+
+---
+
+![Zero-shot Performance](zero-shot.png)
+
 This repository contains the implementation of Time-RCD for time series anomaly detection, integrated with the TSB-AD (Time Series Benchmark for Anomaly Detection) datasets.
 
 ## Prerequisites
