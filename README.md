@@ -1,4 +1,6 @@
-# Time-RCD: Time Series Anomaly Detection with TSB-AD Benchmark
+# Time-RCD: Towards Foundation Models for Zero-Shot Time Series Anomaly Detection
+
+[![arXiv](https://img.shields.io/badge/arXiv-2509.21190-b31b1b.svg)](https://arxiv.org/abs/2509.21190)
 
 ## 🚀 **Try the Demo**
 
@@ -100,5 +102,21 @@ python main.py --mode multi
 ├── main.py              # Main entry point
 ├── model_wrapper.py     # Model wrapper for different algorithms
 └── README.md            # This file
+```
+
+## Citation
+
+If you find this work useful, please cite our paper:
+
+```bibtex
+@misc{lan2025foundationmodelszeroshottime,
+      title={Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveraging Synthetic Data and Relative Context Discrepancy}, 
+      author={Tian Lan and Hao Duong Le and Jinbo Li and Wenjun He and Meng Wang and Chenghao Liu and Chen Zhang},
+      year={2025},
+      eprint={2509.21190},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2509.21190}, 
+}
 ```
 
