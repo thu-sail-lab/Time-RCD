@@ -136,3 +136,7 @@ Thumbs.db
 datasets
 checkpoints
 Uni_Time_RCD
+TSAD_dataset_gen-clean_version/
+*.zip
+*.pkl
+*.pyc

@@ -40,6 +40,8 @@ class PretrainBatch:
     mask_indices: torch.Tensor
     
 class ChatTSAnomalyPretrainDataset(Dataset):
+    _dataset_cache: Dict[str, List[Dict[str, Any]]] = {}
+
     def __init__(self, 
                  dataset_dir: str, 
                  filename: str,
@@ -47,25 +49,27 @@ class ChatTSAnomalyPretrainDataset(Dataset):
                  train_ratio: float = 0.95, 
                  seed: int = 42):
         file_path = os.path.join(dataset_dir, filename)
-        with open(file_path, 'rb') as f:
-            dataset = pickle.load(f)
+        if file_path not in self._dataset_cache:
+            with open(file_path, 'rb') as f:
+                self._dataset_cache[file_path] = pickle.load(f)
+        dataset = self._dataset_cache[file_path]
         random.seed(seed)
         indices = list(range(len(dataset)))
         random.shuffle(indices)
         num_train = int(len(dataset) * train_ratio)
         if split == 'train':
-            selected_indices = indices[:num_train]
+            self.indices = indices[:num_train]
         elif split == 'test':
-            selected_indices = indices[num_train:]
+            self.indices = indices[num_train:]
         else:
             raise ValueError("split must be 'train' or 'test'")
-        self.data = [dataset[i] for i in selected_indices]
+        self.data = dataset
 
     def __len__(self):
-        return len(self.data)
+        return len(self.indices)
 
     def __getitem__(self, idx):
-        sample = self.data[idx]
+        sample = self.data[self.indices[idx]]
         time_series = torch.tensor(sample['time_series'], dtype=torch.float32)
         normal_time_series = torch.tensor(sample['normal_time_series'], dtype=torch.float32)
         labels = torch.tensor(sample['labels'], dtype=torch.long)
@@ -325,9 +329,10 @@ def evaluate_epoch(test_loader: DataLoader,
     total_recon_loss = 0.0
     total_anomaly_loss = 0.0
     num_batches = 0
+    test_batch_limit = min(len(test_loader), getattr(config, 'test_batch_limit', len(test_loader)))
     
     with torch.no_grad():
-        for batch in itertools.islice(test_loader, min(len(test_loader), config.test_batch_limit)):
+        for batch in itertools.islice(test_loader, test_batch_limit):
             # Move data to device
             time_series = batch['time_series'].to(device)
             masked_time_series = batch['masked_time_series'].to(device)
@@ -377,6 +382,7 @@ def train_epoch(train_loader: DataLoader,
     total_recon_loss = 0.0
     total_anomaly_loss = 0.0
     num_batches = 0
+    log_freq = max(1, int(getattr(config, 'log_freq', 10)))
     
     for batch_idx, batch in enumerate(train_loader):
         if batch_idx % 10 == 0:
@@ -423,7 +429,7 @@ def train_epoch(train_loader: DataLoader,
         num_batches += 1
         
         # Log progress based on log_freq
-        if rank == 0 and batch_idx % config.log_freq == 0:
+        if rank == 0 and batch_idx % log_freq == 0:
             print(f"Epoch {epoch}, Batch {batch_idx}/{len(train_loader)}")
             print(f"  Total Loss: {total_loss_batch.item():.4f}")
             print(f"  Recon Loss: {recon_loss.item():.4f}")
@@ -466,6 +472,8 @@ def save_checkpoint(model: nn.Module,
         'loss': avg_loss,
         'config': config.to_dict()
     }
+
+    save_freq = max(1, int(getattr(config, 'save_freq', 1)))
     
     os.makedirs(config.checkpoint_dir, exist_ok=True)
     
@@ -474,7 +482,7 @@ def save_checkpoint(model: nn.Module,
     torch.save(checkpoint, latest_path)
     
     # Save the checkpoint at specified frequency
-    if epoch % config.save_freq == 0 or epoch == config.num_epochs - 1:
+    if epoch % save_freq == 0 or epoch == config.num_epochs - 1:
         save_path = os.path.join(config.checkpoint_dir, f"pretrain_checkpoint_epoch_{epoch}.pth")
         torch.save(checkpoint, save_path)
         print(f"Checkpoint saved to {save_path} (epoch {epoch}, loss: {avg_loss:.4f})")
@@ -648,6 +656,10 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
         # Load data
         train_dataset = ChatTSAnomalyPretrainDataset(config.pretrain_data_path, filename, split="train")
         test_dataset = ChatTSAnomalyPretrainDataset(config.pretrain_data_path, filename, split="test")
+
+        worker_count = int(getattr(config, 'num_workers', 0))
+        worker_count = max(0, worker_count)
+        pin_memory = bool(torch.cuda.is_available())
         
         # Create distributed samplers
         train_sampler = DistributedSampler(
@@ -662,8 +674,8 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
             batch_size=config.batch_size,
             sampler=train_sampler,
             collate_fn=collate_fn,
-            num_workers=2,
-            pin_memory=True
+            num_workers=worker_count,
+            pin_memory=pin_memory
         )
         
         # Create test sampler and loader for validation
@@ -679,8 +691,8 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
             batch_size=config.batch_size,
             sampler=test_sampler,
             collate_fn=collate_fn,
-            num_workers=2,
-            pin_memory=True
+            num_workers=worker_count,
+            pin_memory=pin_memory
         )
         
         # Early stopping parameters
@@ -694,9 +706,10 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
             continuation_info = ""
             if hasattr(config, 'continuation_checkpoint') and config.continuation_checkpoint and os.path.exists(config.continuation_checkpoint):
                 continuation_info = " (continuing from previous dataset)"
+            test_batch_limit = min(len(test_loader), getattr(config, 'test_batch_limit', len(test_loader)))
             print(f"Starting pretraining for {config.num_epochs} epochs on dataset {dataset_name}{continuation_info}...")
             print(f"Total training batches per process: {len(train_loader)}")
-            print(f"Total validation batches per process: {min(config.test_batch_limit, len(test_loader))}")
+            print(f"Total validation batches per process: {test_batch_limit}")
             print(f"Early stopping patience: {early_stopping_patience} epochs")
             print(f"Tasks: Masked Reconstruction + Anomaly Detection")
         
@@ -756,20 +769,31 @@ def main() -> None:
     config.mixed_precision = False
     config.dist_port = "16798"
     config.early_stopping_patience = 7  # Stop training if validation loss doesn't improve for 10 epochs
-    config.pretrain_data_path = "training_data/"
+    config.pretrain_data_path = "/home/lihaoyang/2025/huawei/Time-RCD/TSAD_dataset_gen-clean_version/outputs/RCD_data/"
 
     # ===== Multidataset Training Configuration =====
     # Change to True for multi-dataset training
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str, default='multi', choices=['multi', 'single'])
+    parser.add_argument('--mode', type=str, default='single', choices=['multi', 'single'])
+    parser.add_argument('--gpus', type=str, default=None,
+                        help='Comma-separated GPU IDs, e.g. "0,1". Overrides config.cuda_devices.')
+    parser.add_argument('--num-workers', type=int, default=None,
+                        help='DataLoader workers per DDP process. Defaults to 0 for safer memory usage.')
     args = parser.parse_args()
+
+    if args.gpus is not None:
+        config.cuda_devices = args.gpus
+    if args.num_workers is not None:
+        config.num_workers = args.num_workers
+    elif not hasattr(config, 'num_workers'):
+        config.num_workers = 0
     # Change to True for single-dataset training
     if args.mode == 'multi':
         use_multi_dataset_training = True
     else:
         use_multi_dataset_training = False
     # Filename for single dataset training
-    single_dataset_filename = "uni_data_0_1.pkl"
+    single_dataset_filename = "dataset_1000000_samples_Nonelen_1.0ratio_univariate_attr_set.pkl"
     # Filename list for multi-dataset training
     dataset_filenames = [
         "dataset_0_1.pkl",
@@ -815,7 +839,7 @@ def main() -> None:
         # Set CUDA_VISIBLE_DEVICES
         os.environ['CUDA_VISIBLE_DEVICES'] = config.cuda_devices
         
-        num_features = int(os.path.splitext(single_dataset_filename)[0].split('_')[-1])
+        num_features = 1
         config.ts_config.num_features = num_features
         if world_size == 1:
             # Single GPU training
