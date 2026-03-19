@@ -11,7 +11,7 @@ import torch
 import random, argparse
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from evaluation.metrics import get_metrics
+from evaluation.metrics import get_metrics, get_metrics_optimized
 from utils.slidingWindows import find_length_rank
 from model_wrapper import *
 from HP_list import Optimal_Uni_algo_HP_dict, Optimal_Multi_algo_HP_dict
@@ -48,7 +48,34 @@ if __name__ == '__main__':
     parser.add_argument('--filename', type=str, default='')
     parser.add_argument('--data_direc', type=str, default='')
     parser.add_argument('--save', type=bool, default=True)
-    Multi = parser.parse_args().mode == 'multi'
+    parser.add_argument('--metrics_mode', type=str, default='fast', choices=['default', 'fast'],
+                    help='Metric calculation mode. fast uses parallelized metrics.')
+    parser.add_argument('--skip_logits_metrics', action='store_true',
+                    help='Skip metric calculation for logits to reduce runtime.')
+    parser.add_argument('--metrics_heavy_workers', type=int, default=0,
+                    help='Workers for heavy metrics in fast mode. 0 means auto.')
+    parser.add_argument('--metrics_light_workers', type=int, default=0,
+                    help='Workers for light metrics in fast mode. 0 means auto.')
+    parser.add_argument('--metrics_f1t_splits', type=int, default=800,
+                    help='Number of threshold splits for F1_T in fast mode (lower is faster).')
+    parser.add_argument('--metrics_f1t_chunk_size', type=int, default=25,
+                    help='Chunk size for F1_T threshold processing in fast mode.')
+    args = parser.parse_args()
+    Multi = args.mode == 'multi'
+
+    def compute_metrics(score_arr, label_arr, sw, pred_arr):
+        if args.metrics_mode == 'fast':
+            return get_metrics_optimized(
+                score_arr,
+                label_arr,
+                slidingWindow=sw,
+                pred=pred_arr,
+                heavy_workers=args.metrics_heavy_workers if args.metrics_heavy_workers > 0 else None,
+                light_workers=args.metrics_light_workers if args.metrics_light_workers > 0 else None,
+                f1_t_n_splits=max(50, args.metrics_f1t_splits),
+                f1_t_chunk_size=max(1, args.metrics_f1t_chunk_size),
+            )
+        return get_metrics(score_arr, label_arr, slidingWindow=sw, pred=pred_arr)
     # Initialize list to store all results
     all_results = []
     all_logits = []
@@ -90,16 +117,16 @@ if __name__ == '__main__':
                     "OPP",
 
                 # "IOPS",
-                # "MGAB",
-                # "NAB",
-                # "NEK",
-                # "Power",
-                # "SED",
-                # "Stock",
+                "MGAB",
+                "NAB",
+                "NEK",
+                "Power",
+                "SED",
+                "Stock",
                 # "TODS",
-                # "WSD",
-                # "YAHOO",
-                # "UCR"
+                "WSD",
+                "YAHOO",
+                "UCR"
                 ]
         base_dir = 'datasets/TSB-AD-U/'
         files = os.listdir(base_dir)
@@ -118,7 +145,6 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
 
-        args = parser.parse_args()
         # Set the file-specific values
         args.filename = file
         args.data_direc = base_dir
@@ -168,10 +194,20 @@ if __name__ == '__main__':
                 logits_aligned = logits[:min_length]
 
 
-            evaluation_result = get_metrics(output_aligned, label_aligned, slidingWindow=slidingWindow, pred=output_aligned > (np.mean(output_aligned)+3*np.std(output_aligned)))
+            evaluation_result = compute_metrics(
+                output_aligned,
+                label_aligned,
+                slidingWindow,
+                output_aligned > (np.mean(output_aligned)+3*np.std(output_aligned))
+            )
             evaluation_result_logits = None
-            if logits is not None:
-                evaluation_result_logits = get_metrics(logits_aligned, label_aligned, slidingWindow=slidingWindow, pred=logits_aligned > (np.mean(logits_aligned)+3*np.std(logits_aligned)))
+            if logits is not None and not args.skip_logits_metrics:
+                evaluation_result_logits = compute_metrics(
+                    logits_aligned,
+                    label_aligned,
+                    slidingWindow,
+                    logits_aligned > (np.mean(logits_aligned)+3*np.std(logits_aligned))
+                )
             
             print(evaluation_result)
 
@@ -189,7 +225,7 @@ if __name__ == '__main__':
             }
             all_results.append(result_dict)
 
-            if logits is not None:
+            if logits is not None and evaluation_result_logits is not None:
                 logit_dict = {
                     'filename': args.filename,
                     'AD_Name': args.AD_Name,
@@ -206,7 +242,7 @@ if __name__ == '__main__':
             if args.save:
                 output_filename = f'{args.filename.split(".")[0]}_results.pkl'
                 output_path = os.path.join(
-                    os.path.join(os.getcwd(), (f"{'Multi' if Multi else 'Uni'}_"+args.AD_Name), output_filename))
+                    os.path.join(os.getcwd(), (f"{'Multi' if Multi else 'Uni'}_"+args.AD_Name+"_v4"), output_filename))
                 if not os.path.exists(output_path):
                     os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 pd.DataFrame({
@@ -233,14 +269,14 @@ if __name__ == '__main__':
     if all_results:
         results_df = pd.DataFrame(all_results)
         # win_size =  str(Optimal_Det_HP['win_size']) if Optimal_Det_HP['win_size'] else ""
-        output_filename = f'{"Multi" if Multi else "Uni"}_{args.AD_Name}.csv'
+        output_filename = f'{"Multi" if Multi else "Uni"}_{args.AD_Name}_v4.csv'
         results_df.to_csv(output_filename, index=False)
         print(f"\nAll results saved to {output_filename}")
         print(f"Total file processed: {len(all_results)}")
         print(f"Results shape: {results_df.shape}")
         if all_logits:
             logits_df = pd.DataFrame(all_logits)
-            logits_output_filename = f'{"Multi" if Multi else "Uni"}_{args.AD_Name}.csv'
+            logits_output_filename = f'{"Multi" if Multi else "Uni"}_{args.AD_Name}_v4_logits.csv'
             logits_df.to_csv(logits_output_filename, index=False)
             print(f"Logits results saved to {logits_output_filename}")
     else:

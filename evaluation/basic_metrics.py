@@ -481,8 +481,8 @@ class basic_metricor():
     #
     #     return result
 
-    def metric_F1_T(self, labels: torch.Tensor, scores: torch.Tensor, use_parallel=True, 
-                    parallel_method='chunked', chunk_size=10, max_workers=8):
+    def metric_F1_T(self, labels: torch.Tensor, scores: torch.Tensor, use_parallel=True,
+                    parallel_method='chunked', chunk_size=10, max_workers=8, n_splits=1500):
         """
         Computes the F1 score with optional parallel processing.
 
@@ -493,6 +493,7 @@ class basic_metricor():
             parallel_method: Type of parallel processing ('standard' or 'chunked')
             chunk_size: Size of chunks for chunked parallel processing
             max_workers: Maximum number of worker threads
+            n_splits: Number of quantile splits used to generate thresholds
         """
         result = {}
         labels = torch.tensor(labels, dtype=torch.int)
@@ -502,10 +503,13 @@ class basic_metricor():
         if use_parallel:
             if parallel_method == 'chunked':
                 f1, details = self.__best_ts_fbeta_score_parallel_chunked(
-                    labels, score, beta=1, chunk_size=chunk_size, max_workers=max_workers
+                    labels, score, beta=1, chunk_size=chunk_size,
+                    max_workers=max_workers, n_splits=n_splits
                 )
             else:  # standard parallel
-                f1, details = self.__best_ts_fbeta_score_parallel(labels, score, beta=1)
+                f1, details = self.__best_ts_fbeta_score_parallel(
+                    labels, score, beta=1, n_splits=n_splits
+                )
         else:
             f1, details = self.__best_ts_fbeta_score(labels, score, beta=1)
 
@@ -615,6 +619,8 @@ class basic_metricor():
         device = scores.device
         p_values = torch.linspace(0, 1.0, steps=n_splits, device=device)
         thresholds = torch.quantile(scores, p_values)
+        # Quantiles can repeat heavily on flat/low-resolution scores; deduplicate to avoid redundant work.
+        thresholds = torch.unique(thresholds, sorted=True)
 
         label_ranges = self.compute_window_indices(labels)
         precision = torch.empty_like(thresholds, dtype=torch.float)

@@ -78,12 +78,18 @@ def _compute_t_score(labels, score):
     except Exception:
         return {'F1_T': 0.0, 'P_T': 0.0, 'R_T': 0.0}
 
-def _compute_f1_t(labels, score):
+def _compute_f1_t(labels, score, max_workers=8, chunk_size=25, n_splits=800):
     grader = basic_metricor()
     try:
-        # Use non-parallel path here to avoid pickling issues inside thread workers
-        # metric_F1_T(use_parallel=False) runs in-process and returns a dict
-        return grader.metric_F1_T(labels, score, use_parallel=True)
+        return grader.metric_F1_T(
+            labels,
+            score,
+            use_parallel=True,
+            parallel_method='chunked',
+            chunk_size=chunk_size,
+            max_workers=max_workers,
+            n_splits=n_splits,
+        )
     except Exception:
         # Always return a dict to keep downstream code consistent
         return {'F1_T': 0.0, 'P_T': 0.0, 'R_T': 0.0}
@@ -92,7 +98,18 @@ def _run_task(func, args):
     return func(*args)
 
 
-def get_metrics_optimized(score, labels, slidingWindow=100, pred=None, version='opt', thre=250):
+def get_metrics_optimized(
+    score,
+    labels,
+    slidingWindow=100,
+    pred=None,
+    version='opt',
+    thre=250,
+    heavy_workers=None,
+    light_workers=None,
+    f1_t_n_splits=800,
+    f1_t_chunk_size=25,
+):
     """
     Fully optimized metrics computation with proper parallelization
     """
@@ -103,15 +120,17 @@ def get_metrics_optimized(score, labels, slidingWindow=100, pred=None, version='
     labels = np.asarray(labels, dtype=int)
     score = np.asarray(score, dtype=float)
     
-    # Determine optimal number of workers based on CPU count and workload
+    # Determine worker counts based on CPU count unless explicitly provided.
     n_cores = multiprocessing.cpu_count()
-    
-    # For threshold-iterating functions (affiliation and F1_T)
-    # Use more workers since they have heavy loops
-    heavy_workers = min(n_cores - 2, 8)  # Leave some cores for system
-    
-    # For simple metrics
-    light_workers = min(n_cores // 2, 8)
+    if heavy_workers is None:
+        heavy_workers = max(1, n_cores - 2)  # Leave some cores for system
+    else:
+        heavy_workers = max(1, int(heavy_workers))
+
+    if light_workers is None:
+        light_workers = max(1, n_cores // 2)
+    else:
+        light_workers = max(1, int(light_workers))
     
     print(f"Using {heavy_workers} workers for heavy metrics, {light_workers} for light metrics")
     
@@ -146,7 +165,14 @@ def get_metrics_optimized(score, labels, slidingWindow=100, pred=None, version='
                 'vus': light_executor.submit(_compute_vus, labels, score, slidingWindow, version),
                 'pointf1': light_executor.submit(_compute_pointf1, labels, score),
                 'pointf1pa': light_executor.submit(_compute_pointf1pa, labels, score),
-                'f1_t': light_executor.submit(_compute_f1_t, labels, score)
+                'f1_t': light_executor.submit(
+                    _compute_f1_t,
+                    labels,
+                    score,
+                    max(1, heavy_workers),
+                    f1_t_chunk_size,
+                    f1_t_n_splits,
+                )
             }
             
             # Collect light metric results as they complete

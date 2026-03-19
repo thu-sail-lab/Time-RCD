@@ -453,6 +453,7 @@ def save_checkpoint(model: nn.Module,
                    config: TimeRCDConfig,
                    epoch: int,
                    avg_loss: float,
+                   scaler: Optional[torch.cuda.amp.GradScaler] = None,
                    rank: int = 0,
                    is_best: bool = False) -> None:
     """Save model checkpoint."""
@@ -472,6 +473,9 @@ def save_checkpoint(model: nn.Module,
         'loss': avg_loss,
         'config': config.to_dict()
     }
+
+    if scaler is not None:
+        checkpoint['scaler_state_dict'] = scaler.state_dict()
 
     save_freq = max(1, int(getattr(config, 'save_freq', 1)))
     
@@ -602,11 +606,11 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
         # Initialize model
         model = TimeSeriesPretrainModel(config).to(device)
         
-        # Load checkpoint if continuing from previous dataset
+        # Load checkpoint if resuming/continuing from previous checkpoint
         checkpoint = None
         if hasattr(config, 'continuation_checkpoint') and config.continuation_checkpoint and os.path.exists(config.continuation_checkpoint):
             if rank == 0:
-                print(f"Loading checkpoint from previous dataset: {config.continuation_checkpoint}")
+                print(f"Loading checkpoint: {config.continuation_checkpoint}")
             checkpoint = torch.load(config.continuation_checkpoint, map_location=device)
             
             # Handle DDP state_dict compatibility
@@ -625,7 +629,7 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
             
             model.load_state_dict(state_dict, strict=False)
             if rank == 0:
-                print(f"Successfully loaded model weights from previous dataset training")
+                print(f"Successfully loaded model weights from checkpoint")
         
         # Wrap model with DDP
         # model = DDP(model, device_ids=[rank], find_unused_parameters=True)
@@ -652,6 +656,19 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
         
         # Setup mixed precision scaler
         scaler = torch.amp.GradScaler() if config.mixed_precision else None
+        if scaler is not None and checkpoint is not None and 'scaler_state_dict' in checkpoint:
+            try:
+                scaler.load_state_dict(checkpoint['scaler_state_dict'])
+                if rank == 0:
+                    print("Successfully loaded AMP scaler state from checkpoint")
+            except Exception as e:
+                if rank == 0:
+                    print(f"Warning: Could not load AMP scaler state: {e}")
+
+        start_epoch = 0
+        if checkpoint is not None:
+            start_epoch = int(checkpoint.get('epoch', -1)) + 1
+            start_epoch = min(start_epoch, int(config.num_epochs))
         
         # Load data
         train_dataset = ChatTSAnomalyPretrainDataset(config.pretrain_data_path, filename, split="train")
@@ -705,15 +722,17 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
             dataset_name = filename if filename else "default"
             continuation_info = ""
             if hasattr(config, 'continuation_checkpoint') and config.continuation_checkpoint and os.path.exists(config.continuation_checkpoint):
-                continuation_info = " (continuing from previous dataset)"
+                continuation_info = " (resuming from checkpoint)"
             test_batch_limit = min(len(test_loader), getattr(config, 'test_batch_limit', len(test_loader)))
             print(f"Starting pretraining for {config.num_epochs} epochs on dataset {dataset_name}{continuation_info}...")
+            if start_epoch > 0:
+                print(f"Resuming from epoch {start_epoch}")
             print(f"Total training batches per process: {len(train_loader)}")
             print(f"Total validation batches per process: {test_batch_limit}")
             print(f"Early stopping patience: {early_stopping_patience} epochs")
             print(f"Tasks: Masked Reconstruction + Anomaly Detection")
         
-        for epoch in range(config.num_epochs):
+        for epoch in range(start_epoch, config.num_epochs):
             # Set epoch for distributed samplers
             train_sampler.set_epoch(epoch)
             test_sampler.set_epoch(epoch)
@@ -738,7 +757,7 @@ def train_worker(rank: int, world_size: int, config: TimeRCDConfig, filename: st
                     print(f"Validation loss did not improve. Patience: {patience_counter}/{early_stopping_patience}")
             
             # Save checkpoint with best model flag
-            save_checkpoint(model, optimizer, config, epoch, avg_val_loss, rank, is_best)
+            save_checkpoint(model, optimizer, config, epoch, avg_val_loss, scaler, rank, is_best)
             
             # Early stopping check
             if patience_counter >= early_stopping_patience:
@@ -779,6 +798,8 @@ def main() -> None:
                         help='Comma-separated GPU IDs, e.g. "0,1". Overrides config.cuda_devices.')
     parser.add_argument('--num-workers', type=int, default=None,
                         help='DataLoader workers per DDP process. Defaults to 0 for safer memory usage.')
+    parser.add_argument('--resume', type=str, default=None,
+                        help='Resume from checkpoint path. Use "auto" to load checkpoints/pretrain_checkpoint_latest.pth.')
     args = parser.parse_args()
 
     if args.gpus is not None:
@@ -787,6 +808,20 @@ def main() -> None:
         config.num_workers = args.num_workers
     elif not hasattr(config, 'num_workers'):
         config.num_workers = 0
+
+    config.continuation_checkpoint = None
+    if args.resume is not None:
+        if args.resume == "auto":
+            resume_path = os.path.join(config.checkpoint_dir, "pretrain_checkpoint_latest.pth")
+        else:
+            resume_path = args.resume
+
+        if os.path.exists(resume_path):
+            config.continuation_checkpoint = resume_path
+            print(f"Resume enabled: {resume_path}")
+        else:
+            print(f"Warning: resume checkpoint not found: {resume_path}")
+            print("Training will start from scratch.")
     # Change to True for single-dataset training
     if args.mode == 'multi':
         use_multi_dataset_training = True

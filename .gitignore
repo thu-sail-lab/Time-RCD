@@ -139,4 +139,6 @@ Uni_Time_RCD
 TSAD_dataset_gen-clean_version/
 *.zip
 *.pkl
+*.csv
+*.cpython-310.pyc
 *.pyc
