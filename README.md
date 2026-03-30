@@ -90,6 +90,39 @@ huggingface-cli download thu-sail-lab/Time-RCD checkpoints.zip --local-dir ./
 unzip checkpoints.zip
 ```
 
+Or download only the best checkpoint:
+
+```bash
+huggingface-cli download thu-sail-lab/Time-RCD best_model/pretrain_checkpoint_best.pth --local-dir ./
+```
+
+For servers in China, use the mirror endpoint:
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com \
+  huggingface-cli download thu-sail-lab/Time-RCD best_model/pretrain_checkpoint_best.pth --local-dir ./
+```
+
+## 🏋️ Training
+
+Run pretraining with default single-dataset mode:
+
+```bash
+python training.py --mode single --gpus 0 --num-workers 0
+```
+
+Run multi-dataset pretraining:
+
+```bash
+python training.py --mode multi --gpus 0 --num-workers 0
+```
+
+Resume from latest checkpoint:
+
+```bash
+python training.py --mode single --gpus 0 --num-workers 0 --resume auto
+```
+
 ## 📊 Evaluation
 
 ### Single Variable Time Series

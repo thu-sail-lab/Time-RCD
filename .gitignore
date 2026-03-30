@@ -142,3 +142,4 @@ TSAD_dataset_gen-clean_version/
 *.csv
 *.cpython-310.pyc
 *.pyc
+scripts/
