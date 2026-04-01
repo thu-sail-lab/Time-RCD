@@ -438,20 +438,10 @@ def run_Time_RCD(data,  **kwargs):
 
     config = default_config
     if Multi:
-        if size == 'small':
-            if random_mask == 'random_mask':
-                checkpoint_path = 'checkpoints/dataset_10_20.pth'
-            else:
-                checkpoint_path = 'checkpoints/full_mask_10_20.pth'
-            config.ts_config.patch_size = 16
-        else:
-            if random_mask == 'random_mask':
-                checkpoint_path = 'checkpoints/dataset_15_56.pth'
-            else:
-                checkpoint_path = 'checkpoints/full_mask_15_56.pth'
-            config.ts_config.patch_size = 32
+        checkpoint_path = 'best_model/pretrain_checkpoint_best_multi.pth'
+        config.ts_config.patch_size = 16
     else:
-        checkpoint_path = 'checkpoints/pretrain_checkpoint_best.pth'
+        checkpoint_path = 'best_model/pretrain_checkpoint_best_uni.pth'
         config.ts_config.patch_size = 16
 
     config.cuda_devices = device  # Use the device parameter properly

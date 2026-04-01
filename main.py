@@ -159,23 +159,23 @@ if __name__ == '__main__':
     all_logits = []
     if Multi:
         filter_list = [
-                "GHL",
-                "Daphnet",
-                "Exathlon",
-                "Genesis",
-                "OPP",
-                "SMD",
+                # "GHL",
+                # "Daphnet",
+                # "Exathlon",
+                # "Genesis",
+                # "OPP",
+                # "SMD",
                 # "SWaT",
                 # "PSM",
-                "SMAP",
-                "MSL",
-                "CreditCard",
-                "GECCO",
-                "MITDB",
-                "SVDB",
-                "LTDB",
-                "CATSv2",
-                "TAO"
+                # "SMAP",
+                # "MSL",
+                # "CreditCard",
+                # "GECCO",
+                # "MITDB",
+                # "SVDB",
+                # "LTDB",
+                # "CATSv2",
+                # "TAO"
             ]
         base_dir = 'datasets/TSB-AD-M/'
         files = os.listdir(base_dir)

@@ -22,6 +22,8 @@ _Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveragi
 
 This repository contains the implementation of **Time-RCD** for time series anomaly detection, integrated with the TSB-AD (Time Series Benchmark for Anomaly Detection) datasets.
 
+**Update (2026.04):** With a new dataset and new checkpoints, Time-RCD achieves better results. The univariate setting improves VUS-PR by an absolute 6.7 points, and the multivariate setting improves VUS-PR by an absolute 4.5 points.
+
 **[🌟 Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/thu-sail-lab/Time_RCD)** - Experience Time-RCD in action with our interactive demo!
 
 <div align="center">
@@ -86,21 +88,16 @@ pip install jaxtyping einops pandas numpy scikit-learn transformers torch torchv
 Download the pre-trained model checkpoints from Hugging Face:
 
 ```bash
-huggingface-cli download thu-sail-lab/Time-RCD checkpoints.zip --local-dir ./
-unzip checkpoints.zip
-```
-
-Or download only the best checkpoint:
-
-```bash
-huggingface-cli download thu-sail-lab/Time-RCD best_model/pretrain_checkpoint_best.pth --local-dir ./
+huggingface-cli download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_uni.pth" --local-dir .
+huggingface-cli download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_multi.pth" --local-dir .
 ```
 
 For servers in China, use the mirror endpoint:
 
 ```bash
 HF_ENDPOINT=https://hf-mirror.com \
-  huggingface-cli download thu-sail-lab/Time-RCD best_model/pretrain_checkpoint_best.pth --local-dir ./
+hf download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_uni.pth" --local-dir .
+hf download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_multi.pth" --local-dir 
 ```
 
 ## 🏋️ Training
