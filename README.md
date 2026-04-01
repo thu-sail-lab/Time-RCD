@@ -22,7 +22,7 @@ _Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveragi
 
 This repository contains the implementation of **Time-RCD** for time series anomaly detection, integrated with the TSB-AD (Time Series Benchmark for Anomaly Detection) datasets.
 
-**Update (2026.04):** With a new dataset and new checkpoints, Time-RCD achieves better results. The univariate setting improves VUS-PR by an absolute 6.7 points, and the multivariate setting improves VUS-PR by an absolute 4.5 points.
+**🌟Update (2026.04):** With a new dataset and new checkpoints, Time-RCD achieves better results. The univariate setting improves VUS-PR by an **absolute 6.7 points**, and the multivariate setting improves VUS-PR by an **absolute 4.5 points**.
 
 **[🌟 Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/thu-sail-lab/Time_RCD)** - Experience Time-RCD in action with our interactive demo!
 
