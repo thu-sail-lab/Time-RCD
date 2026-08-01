@@ -118,6 +118,13 @@ See **[Tutorial.md](https://github.com/thu-sail-lab/Time-RCD/blob/main/Tutorial.
 └── README.md
 ```
 
+### TSB-AD benchmark code
+
+The original benchmark integration, evaluation scripts, and baseline
+implementations are maintained in the
+[`tsb-ad-integration`](https://github.com/thu-sail-lab/Time-RCD/tree/tsb-ad-integration)
+branch. For the lightweight zero-shot inference API, use the `main` branch.
+
 ---
 
 ## 🔗 Citation
