@@ -13,8 +13,7 @@ _Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveragi
 <p align="center">
     📰&nbsp;<a href="#-news">News</a>
     | 🔍&nbsp;<a href="#-about">About</a>
-    | 🚀&nbsp;<a href="#-quick-start">Quick Start</a>
-    | 📊&nbsp;<a href="#-evaluation">Evaluation</a>
+    | 🎯&nbsp;<a href="#-use-on-your-own-data">Use on Your Own Data</a>
     | 📁&nbsp;<a href="#-project-structure">Project Structure</a>
     | 🔗&nbsp;<a href="#-citation">Citation</a>
 </p>
@@ -27,140 +26,99 @@ _Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveragi
 
 ## 🔍 About
 
-This repository contains the implementation of **Time-RCD** for time series anomaly detection, integrated with the TSB-AD (Time Series Benchmark for Anomaly Detection) datasets.
+**Time-RCD** is a zero-shot foundation model for time series anomaly detection. Given a univariate or multivariate series, it outputs a per-timestep anomaly score without any task-specific training on your data.
 
 🐘 On the [TSB-AD benchmark](https://thedatumorg.github.io/TSB-AD/), Time-RCD achieves a **Univariate VUS-PR of 0.52** and a **Multivariate VUS-PR of 0.32**.
 
-
-
-**[🌟 Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/thu-sail-lab/Time_RCD)** - Experience Time-RCD in action with our interactive demo!
+**[🌟 Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/thu-sail-lab/Time_RCD)** — try Time-RCD interactively in your browser.
 
 <div align="center">
-<img src="zero-shot.png" style="width:95%;" />
+<img src="https://raw.githubusercontent.com/thu-sail-lab/Time-RCD/main/zero-shot.png" style="width:95%;" />
 </div>
 
-## 🚀 Quick Start
+This repository contains:
 
-### Prerequisites
+1. **`time_rcd/`** — a lightweight Python API for inference on your own data
 
-- Python 3.10
-- conda (recommended for environment management)
-- Git
+For a step-by-step guide, see **[Tutorial.md](https://github.com/thu-sail-lab/Time-RCD/blob/main/Tutorial.md)**.
+
+---
+
+## 🎯 Use on Your Own Data
 
 ### Installation
-
-#### 1. Create and Activate Conda Environment
 
 ```bash
 conda create -n Time-RCD python=3.10
 conda activate Time-RCD
-```
 
-#### 2. Download the Repository
-
-```bash
 git clone https://github.com/thu-sail-lab/Time-RCD.git
 cd Time-RCD
+pip install .
 ```
 
-#### 3. Download TSB-AD Datasets
+### Python API (recommended)
 
-Create the datasets directory and download the TSB-AD-U (univariate) and TSB-AD-M (multivariate) datasets:
+Checkpoints are downloaded from Hugging Face automatically on first use and cached locally.
+For servers in China, set `HF_ENDPOINT=https://hf-mirror.com` before running
+the examples or loading a checkpoint.
 
 ```bash
-mkdir -p "datasets" \
-  && wget -O "datasets/TSB-AD-U.zip" "https://www.thedatum.org/datasets/TSB-AD-U.zip" \
-  && wget -O "datasets/TSB-AD-M.zip" "https://www.thedatum.org/datasets/TSB-AD-M.zip" \
-  && cd datasets \
-  && unzip TSB-AD-U.zip && rm TSB-AD-U.zip \
-  && unzip TSB-AD-M.zip && rm TSB-AD-M.zip \
-  && cd ..
+export HF_ENDPOINT=https://hf-mirror.com
 ```
 
-#### 4. Install Python Dependencies
+```python
+import numpy as np
+from time_rcd import TimeRCDDetector
 
-**Option A: Fast Install (using uv)**
+data = np.load("my_series.npy")  # shape (T,) or (T, C)
+
+detector = TimeRCDDetector.from_pretrained(variant="uni")   # or "multi"
+scores = detector.predict(data)                             # shape (T,)
+```
+
+**Multivariate series** — use `variant="multi"` when `C > 1`:
+
+```python
+detector = TimeRCDDetector.from_pretrained(variant="multi")
+scores = detector.predict(multivariate_data)  # shape (T, C) -> scores (T,)
+```
+
+**Local checkpoint** — if you already downloaded weights:
+
+```python
+detector = TimeRCDDetector.from_local(
+    "best_model/pretrain_checkpoint_best_uni.pth",
+    variant="uni",
+)
+```
+
+### Quick example
 
 ```bash
-pip install uv
-uv pip install jaxtyping einops pandas numpy scikit-learn transformers torch torchvision statsmodels matplotlib seaborn -U "huggingface_hub[cli]"
+python examples/quickstart.py
 ```
 
-**Option B: Normal Install**
+See **[Tutorial.md](https://github.com/thu-sail-lab/Time-RCD/blob/main/Tutorial.md)** for CSV loading, hyperparameters, and more examples.
 
-```bash
-pip install jaxtyping einops pandas numpy scikit-learn transformers torch torchvision statsmodels matplotlib seaborn -U "huggingface_hub[cli]"
-```
-
-#### 5. Download Pre-trained Checkpoints
-
-Download the pre-trained model checkpoints from Hugging Face:
-
-```bash
-huggingface-cli download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_uni.pth" --local-dir .
-huggingface-cli download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_multi.pth" --local-dir .
-```
-
-For servers in China, use the mirror endpoint:
-
-```bash
-HF_ENDPOINT=https://hf-mirror.com \
-hf download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_uni.pth" --local-dir .
-hf download thu-sail-lab/Time-RCD --include "best_model/pretrain_checkpoint_best_multi.pth" --local-dir 
-```
-
-## 🏋️ Training
-
-Run pretraining with default single-dataset mode:
-
-```bash
-python training.py --mode single --gpus 0 --num-workers 0
-```
-
-Run multi-dataset pretraining:
-
-```bash
-python training.py --mode multi --gpus 0 --num-workers 0
-```
-
-Resume from latest checkpoint:
-
-```bash
-python training.py --mode single --gpus 0 --num-workers 0 --resume auto
-```
-
-## 📊 Evaluation
-
-### Single Variable Time Series
-
-To run anomaly detection on univariate time series:
-
-```bash
-python main.py
-```
-
-### Multi-Variable Time Series
-
-To run anomaly detection on multivariate time series:
-
-```bash
-python main.py --mode multi
-```
+---
 
 ## 📁 Project Structure
 
 ```
 .
-├── checkpoints/          # Pre-trained model checkpoints
-├── datasets/            # TSB-AD datasets (univariate and multivariate)
-├── evaluation/          # Evaluation metrics and visualization tools
-├── models/              # Model implementations
-│   └── time_rcd/       # Time-RCD model components
-├── utils/               # Utility functions
-├── main.py              # Main entry point
-├── model_wrapper.py     # Model wrapper for different algorithms
-└── README.md            # This file
+├── time_rcd/              # User-facing inference API
+│   ├── detector.py        # TimeRCDDetector
+│   └── _core/             # Time-RCD inference model implementation
+├── examples/
+│   └── quickstart.py      # Minimal inference example
+├── Tutorial.md            # Guide for your own data
+├── pyproject.toml         # Package metadata and dependencies
+├── zero-shot.png          # Model overview
+└── README.md
 ```
+
+---
 
 ## 🔗 Citation
 
