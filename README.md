@@ -36,7 +36,7 @@ This repository contains the implementation of **Time-RCD** for time series anom
 **[🌟 Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/thu-sail-lab/Time_RCD)** - Experience Time-RCD in action with our interactive demo!
 
 <div align="center">
-<img src="zero-shot.png" style="width:70%;" />
+<img src="zero-shot.png" style="width:95%;" />
 </div>
 
 ## 🚀 Quick Start
