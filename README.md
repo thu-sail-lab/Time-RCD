@@ -33,7 +33,7 @@ _Towards Foundation Models for Zero-Shot Time Series Anomaly Detection: Leveragi
 **[🌟 Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/thu-sail-lab/Time_RCD)** — try Time-RCD interactively in your browser.
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/thu-sail-lab/Time-RCD/main/zero-shot.png" style="width:95%;" />
+<img src="zero-shot.png?v=977a8c9dee67" style="width:95%;" />
 </div>
 
 This repository contains:
